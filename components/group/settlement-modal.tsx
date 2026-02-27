@@ -10,7 +10,7 @@ import { safeFloat } from "@/lib/logic/rounding"
 import { ArrowRight, Banknote, QrCode, Smartphone } from "lucide-react"
 import { UpiQrModal } from "@/components/group/upi-qr-modal"
 
-type SettlementStep = "form" | "method" | "upi-confirm"
+type SettlementStep = "form" | "method" | "upi-app-select" | "upi-confirm"
 
 interface SettlementModalProps {
     isOpen: boolean
@@ -103,7 +103,7 @@ export function SettlementModal({
     const receiverMember = group.members.find(m => m.id === receiverId)
     const receiverHasContact = !!receiverMember?.contact
 
-    const handlePayViaMobile = useCallback(() => {
+    const handlePayViaApp = useCallback((appPackage: string) => {
         if (!receiverMember?.contact) return
         const phone = receiverMember.contact.replace(/\D/g, '')
         const settleAmount = safeFloat(parseFloat(amount))
@@ -114,13 +114,15 @@ export function SettlementModal({
             pn: receiverMember.name,
             am: settleAmount.toFixed(2),
             cu: 'INR',
-            tn: `Split Settlement`,
+            tn: 'Split Settlement',
         })
-        const upiUri = `upi://pay?${params.toString()}`
-        window.location.href = upiUri
+
+        // Android intent URL targets a specific app package
+        const intentUrl = `intent://pay?${params.toString()}#Intent;scheme=upi;package=${appPackage};end`
+        window.location.href = intentUrl
 
         // After UPI app returns, show confirmation
-        setTimeout(() => setStep("upi-confirm"), 500)
+        setTimeout(() => setStep("upi-confirm"), 800)
     }, [receiverMember, amount])
 
     const handleUpiDone = () => {
@@ -255,7 +257,7 @@ export function SettlementModal({
 
                                 {receiverHasContact && (
                                     <button
-                                        onClick={handlePayViaMobile}
+                                        onClick={() => setStep("upi-app-select")}
                                         className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
                                     >
                                         <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
@@ -275,6 +277,59 @@ export function SettlementModal({
 
                             <button
                                 onClick={handleBack}
+                                className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+                            >
+                                ← Back
+                            </button>
+                        </>
+                    )}
+
+                    {step === "upi-app-select" && (
+                        <>
+                            {/* Amount Summary */}
+                            <div className="text-center py-2">
+                                <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">Pay via</p>
+                                <p className="text-3xl font-bold tabular-nums">
+                                    <span className="text-xl text-muted-foreground mr-1">₹</span>
+                                    {numAmount.toFixed(2)}
+                                </p>
+                                {receiverMember && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        to <span className="font-semibold text-foreground">{receiverMember.name}</span>
+                                    </p>
+                                )}
+                            </div>
+
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">
+                                Choose App
+                            </p>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                {/* BHIM */}
+                                <button
+                                    onClick={() => handlePayViaApp('in.org.npci.upiapp')}
+                                    className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                >
+                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-sm shadow-md">
+                                        BHIM
+                                    </div>
+                                    <span className="font-semibold text-sm">BHIM</span>
+                                </button>
+
+                                {/* PhonePe */}
+                                <button
+                                    onClick={() => handlePayViaApp('com.phonepe.app')}
+                                    className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                >
+                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
+                                        <Smartphone size={24} className="text-white" />
+                                    </div>
+                                    <span className="font-semibold text-sm">PhonePe</span>
+                                </button>
+                            </div>
+
+                            <button
+                                onClick={() => setStep("method")}
                                 className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
                             >
                                 ← Back

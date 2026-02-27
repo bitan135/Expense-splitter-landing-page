@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, use, memo, useCallback, useMemo } from "react"
+import { useState, useEffect, use, memo, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useStore } from "@/lib/store"
 import { Header } from "@/components/layout/header"
@@ -130,6 +130,16 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
     const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
     const [newMemberName, setNewMemberName] = useState("")
     const [newMemberContact, setNewMemberContact] = useState("")
+
+    // Detect Contact Picker API on client (cannot check during SSR)
+    const [contactsSupported, setContactsSupported] = useState(false)
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const nav = navigator as any
+        if ('contacts' in navigator && typeof nav.contacts?.select === 'function') {
+            setContactsSupported(true)
+        }
+    }, [])
 
     // Settlement Logic
     const [settlementModalOpen, setSettlementModalOpen] = useState(false)
@@ -303,7 +313,7 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
             >
                 <div className="space-y-4 pt-2">
                     {/* Import from Contacts button — only shown when Contact Picker API is available */}
-                    {typeof navigator !== 'undefined' && 'contacts' in navigator && (
+                    {contactsSupported && (
                         <button
                             onClick={handleImportContact}
                             className="w-full flex items-center justify-center gap-2 h-12 rounded-2xl bg-secondary hover:bg-secondary/80 text-sm font-semibold transition-all active:scale-[0.97]"
