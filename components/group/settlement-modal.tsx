@@ -103,7 +103,7 @@ export function SettlementModal({
     const receiverMember = group.members.find(m => m.id === receiverId)
     const receiverHasContact = !!receiverMember?.contact
 
-    const handlePayViaApp = useCallback((appPackage: string) => {
+    const handlePayViaApp = useCallback((app: 'bhim' | 'phonepe') => {
         if (!receiverMember?.contact) return
         const phone = receiverMember.contact.replace(/\D/g, '')
         const settleAmount = safeFloat(parseFloat(amount))
@@ -117,9 +117,23 @@ export function SettlementModal({
             tn: 'Split Settlement',
         })
 
-        // Android intent URL targets a specific app package
-        const intentUrl = `intent://pay?${params.toString()}#Intent;scheme=upi;package=${appPackage};end`
-        window.location.href = intentUrl
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+        let url: string
+
+        if (isIOS) {
+            // iOS: use app-specific URL schemes
+            if (app === 'phonepe') {
+                url = `phonepe://pay?${params.toString()}`
+            } else {
+                url = `upi://pay?${params.toString()}`
+            }
+        } else {
+            // Android: use intent URLs targeting specific packages
+            const pkg = app === 'phonepe' ? 'com.phonepe.app' : 'in.org.npci.upiapp'
+            url = `intent://pay?${params.toString()}#Intent;scheme=upi;package=${pkg};end`
+        }
+
+        window.location.href = url
 
         // After UPI app returns, show confirmation
         setTimeout(() => setStep("upi-confirm"), 800)
@@ -307,7 +321,7 @@ export function SettlementModal({
                             <div className="grid grid-cols-2 gap-3">
                                 {/* BHIM */}
                                 <button
-                                    onClick={() => handlePayViaApp('in.org.npci.upiapp')}
+                                    onClick={() => handlePayViaApp('bhim')}
                                     className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
                                 >
                                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-sm shadow-md">
@@ -318,7 +332,7 @@ export function SettlementModal({
 
                                 {/* PhonePe */}
                                 <button
-                                    onClick={() => handlePayViaApp('com.phonepe.app')}
+                                    onClick={() => handlePayViaApp('phonepe')}
                                     className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
                                 >
                                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
