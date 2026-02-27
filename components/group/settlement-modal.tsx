@@ -129,8 +129,8 @@ export function SettlementModal({
             if (app === 'phonepe') {
                 url = `phonepe://pay?${params.toString()}`
             } else {
-                // BHIM registers its own URL scheme on iOS
-                url = `bhim://upi/pay?${params.toString()}`
+                // BHIM on iOS: bhim://pay (no /upi path)
+                url = `bhim://pay?${params.toString()}`
             }
         } else {
             // Android: explicit intent with action + category to force package targeting
