@@ -3,6 +3,7 @@ export type SplitType = 'equal' | 'exact' | 'custom' | 'percent' | 'exclude' | '
 export interface Member {
     id: string;
     name: string;
+    contact?: string; // sanitised phone number (digits only)
 }
 
 export interface Expense {

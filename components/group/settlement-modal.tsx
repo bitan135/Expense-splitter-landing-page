@@ -7,10 +7,10 @@ import { Group } from "@/types"
 import { useStore } from "@/lib/store"
 import { useUpiConfig } from "@/lib/upi-store"
 import { safeFloat } from "@/lib/logic/rounding"
-import { ArrowRight, Banknote, QrCode } from "lucide-react"
+import { ArrowRight, Banknote, QrCode, Smartphone } from "lucide-react"
 import { UpiQrModal } from "@/components/group/upi-qr-modal"
 
-type SettlementStep = "form" | "method"
+type SettlementStep = "form" | "method" | "upi-confirm"
 
 interface SettlementModalProps {
     isOpen: boolean
@@ -98,6 +98,30 @@ export function SettlementModal({
         setUpiError("")
         setUpiQrOpen(true)
     }
+
+    // UPI Pay-to-Mobile: deep-link using receiver's phone number
+    const receiverMember = group.members.find(m => m.id === receiverId)
+    const receiverHasContact = !!receiverMember?.contact
+
+    const handlePayViaMobile = useCallback(() => {
+        if (!receiverMember?.contact) return
+        const phone = receiverMember.contact.replace(/\D/g, '')
+        const settleAmount = safeFloat(parseFloat(amount))
+        if (isNaN(settleAmount) || settleAmount <= 0) return
+
+        const params = new URLSearchParams({
+            pa: `${phone}@upi`,
+            pn: receiverMember.name,
+            am: settleAmount.toFixed(2),
+            cu: 'INR',
+            tn: `Split Settlement`,
+        })
+        const upiUri = `upi://pay?${params.toString()}`
+        window.location.href = upiUri
+
+        // After UPI app returns, show confirmation
+        setTimeout(() => setStep("upi-confirm"), 500)
+    }, [receiverMember, amount])
 
     const handleUpiDone = () => {
         setUpiQrOpen(false)
@@ -208,7 +232,7 @@ export function SettlementModal({
                                 Choose Method
                             </p>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className={`grid ${receiverHasContact ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}>
                                 <button
                                     onClick={handleCash}
                                     className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
@@ -226,8 +250,20 @@ export function SettlementModal({
                                     <div className="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center">
                                         <QrCode size={24} className="text-violet-600" />
                                     </div>
-                                    <span className="font-semibold text-sm">UPI</span>
+                                    <span className="font-semibold text-sm">UPI QR</span>
                                 </button>
+
+                                {receiverHasContact && (
+                                    <button
+                                        onClick={handlePayViaMobile}
+                                        className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                    >
+                                        <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                            <Smartphone size={24} className="text-blue-600" />
+                                        </div>
+                                        <span className="font-semibold text-sm">Pay UPI</span>
+                                    </button>
+                                )}
                             </div>
 
                             {/* UPI Error */}
@@ -243,6 +279,36 @@ export function SettlementModal({
                             >
                                 ← Back
                             </button>
+                        </>
+                    )}
+
+                    {step === "upi-confirm" && (
+                        <>
+                            <div className="text-center py-4">
+                                <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+                                    <Smartphone size={32} className="text-blue-600" />
+                                </div>
+                                <p className="text-lg font-bold mb-1">Payment initiated</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Did you complete the UPI payment of <span className="font-bold tabular-nums">₹{numAmount.toFixed(2)}</span>?
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <Button
+                                    variant="secondary"
+                                    className="h-12 font-bold"
+                                    onClick={handleBack}
+                                >
+                                    No, Go Back
+                                </Button>
+                                <Button
+                                    className="h-12 font-bold"
+                                    onClick={() => recordSettlement('upi')}
+                                >
+                                    Yes, Settled
+                                </Button>
+                            </div>
                         </>
                     )}
                 </div>

@@ -16,7 +16,7 @@ type Action =
     | { type: "CREATE_GROUP"; payload: { name: string } }
     | { type: "DELETE_GROUP"; payload: { id: string } }
     | { type: "SET_ACTIVE_GROUP"; payload: { id: string | null } }
-    | { type: "ADD_MEMBER"; payload: { groupId: string; name: string } }
+    | { type: "ADD_MEMBER"; payload: { groupId: string; name: string; contact?: string } }
     | { type: "ADD_EXPENSE"; payload: { groupId: string; expense: Expense } }
     | { type: "UPDATE_EXPENSE"; payload: { groupId: string; expense: Expense } }
     | { type: "DELETE_EXPENSE"; payload: { groupId: string; expenseId: string } };
@@ -68,6 +68,7 @@ const reducer = (state: AppState, action: Action): AppState => {
                             {
                                 id: Date.now().toString(36) + Math.random().toString(36).slice(2),
                                 name: action.payload.name,
+                                ...(action.payload.contact ? { contact: action.payload.contact } : {}),
                             },
                         ],
                         lastUpdated: Date.now(),

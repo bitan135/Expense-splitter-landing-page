@@ -6,7 +6,7 @@ import { useStore } from "@/lib/store"
 import { Header } from "@/components/layout/header"
 import { Button, Card, Input } from "@/components/ui/base"
 import { Modal } from "@/components/ui/modal"
-import { ArrowLeft, Plus, Users, Receipt, FileText, Trash2, Settings, ArrowRight } from "lucide-react"
+import { ArrowLeft, Plus, Users, Receipt, FileText, Trash2, Settings, ArrowRight, Contact } from "lucide-react"
 import { calculateBalances } from "@/lib/logic/calculateBalances"
 import { cn } from "@/lib/utils"
 import { Group, Expense, Member } from "@/types"
@@ -31,6 +31,9 @@ const MemberItem = memo(({ member, balance, onSettle }: { member: Member, balanc
                 </div>
                 <div className="flex flex-col">
                     <span className="font-semibold text-base">{member.name}</span>
+                    {member.contact && (
+                        <span className="text-[11px] text-muted-foreground/70 tabular-nums">{member.contact}</span>
+                    )}
                     {!isZero && (
                         <span className={cn(
                             "text-xs font-bold tabular-nums",
@@ -126,6 +129,7 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
     const router = useRouter()
     const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
     const [newMemberName, setNewMemberName] = useState("")
+    const [newMemberContact, setNewMemberContact] = useState("")
 
     // Settlement Logic
     const [settlementModalOpen, setSettlementModalOpen] = useState(false)
@@ -140,13 +144,31 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
 
     const handleAddMember = useCallback(() => {
         if (!newMemberName.trim()) return
+        const contact = newMemberContact.replace(/\D/g, '')
         dispatch({
             type: "ADD_MEMBER",
-            payload: { groupId: id, name: newMemberName.trim() }
+            payload: { groupId: id, name: newMemberName.trim(), ...(contact ? { contact } : {}) }
         })
         setNewMemberName("")
+        setNewMemberContact("")
         setIsAddMemberOpen(false)
-    }, [dispatch, id, newMemberName])
+    }, [dispatch, id, newMemberName, newMemberContact])
+
+    const handleImportContact = useCallback(async () => {
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const nav = navigator as any
+            if (!('contacts' in navigator) || !nav.contacts?.select) return
+            const contacts = await nav.contacts.select(['name', 'tel'], { multiple: false })
+            if (contacts && contacts.length > 0) {
+                const c = contacts[0]
+                if (c.name && c.name.length > 0) setNewMemberName(c.name[0])
+                if (c.tel && c.tel.length > 0) setNewMemberContact(c.tel[0].replace(/\D/g, ''))
+            }
+        } catch {
+            // User cancelled or API error — ignore
+        }
+    }, [])
 
     const handleDeleteExpense = useCallback((groupId: string, expenseId: string) => {
         dispatch({
@@ -279,7 +301,17 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                 onClose={() => setIsAddMemberOpen(false)}
                 title="Add Member"
             >
-                <div className="space-y-6 pt-2">
+                <div className="space-y-4 pt-2">
+                    {/* Import from Contacts button — only shown when Contact Picker API is available */}
+                    {typeof navigator !== 'undefined' && 'contacts' in navigator && (
+                        <button
+                            onClick={handleImportContact}
+                            className="w-full flex items-center justify-center gap-2 h-12 rounded-2xl bg-secondary hover:bg-secondary/80 text-sm font-semibold transition-all active:scale-[0.97]"
+                        >
+                            <Contact size={18} className="text-primary" />
+                            Import from Contacts
+                        </button>
+                    )}
                     <Input
                         autoFocus
                         placeholder="Enter name"
@@ -287,6 +319,13 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                         onChange={(e) => setNewMemberName(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleAddMember()}
                         className="text-lg bg-secondary"
+                    />
+                    <Input
+                        placeholder="Phone number (optional)"
+                        value={newMemberContact}
+                        onChange={(e) => setNewMemberContact(e.target.value)}
+                        inputMode="tel"
+                        className="text-base bg-secondary"
                     />
                     <Button className="w-full" size="lg" onClick={handleAddMember}>Add to Group</Button>
                 </div>
