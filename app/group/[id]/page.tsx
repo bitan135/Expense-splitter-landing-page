@@ -13,41 +13,74 @@ import { Group, Expense, Member } from "@/types"
 
 import { optimizeSettlement, Transaction } from "@/lib/logic/optimizeSettlement"
 
-const MemberItem = memo(({ member, transaction, isSelf, selfBalance, onSettle }: {
-    member: Member, transaction: Transaction | null, isSelf: boolean, selfBalance: number,
-    onSettle: (type: 'pay' | 'receive', memberId: string, amount: number) => void
+const MemberItem = memo(({ member, allTransactions, groupMembers, isSelf, selfId, selfBalance, onSettle }: {
+    member: Member, allTransactions: Transaction[], groupMembers: Member[], isSelf: boolean, selfId: string | undefined, selfBalance: number,
+    onSettle: (type: 'pay' | 'receive' | 'record', payerId: string, receiverId: string, amount: number) => void
 }) => {
-    // transaction 'from' -> 'to' amount
-    // If we are 'from', we owe them (type: pay)
-    // If we are 'to', they owe us (type: receive)
-
     let isPositive = false
     let isZero = true
     let amount = 0
-    let type: 'pay' | 'receive' = 'pay'
+    let type: 'pay' | 'receive' | 'record' = 'pay'
+    let text = "Settled up"
+    let actionPayerId = ""
+    let actionReceiverId = ""
 
     if (isSelf) {
         // Self card shows overall global balance
         isPositive = selfBalance > 0
         isZero = Math.abs(selfBalance) < 0.01
         amount = Math.abs(selfBalance)
-    } else if (transaction) {
-        // Other members show their direct debt relative to Self
-        isZero = false
-        amount = transaction.amount
-        if (transaction.from === member.id) {
-            // They owe Self -> Collect
-            isPositive = true
-            type = 'receive'
-        } else {
-            // Self owes them -> Settle
-            isPositive = false
-            type = 'pay'
+        text = isPositive ? "Gets back overall" : "Owes overall"
+    } else {
+        // Find best transaction involving this member
+        // Priority 1: Direct transaction with Self
+        let tx = selfId ? allTransactions.find(t =>
+            (t.from === selfId && t.to === member.id) ||
+            (t.from === member.id && t.to === selfId)
+        ) : undefined
+
+        // Priority 2: Any transaction involving this member (Third-Party Debt)
+        if (!tx) {
+            tx = allTransactions.find(t => t.from === member.id || t.to === member.id)
+        }
+
+        if (tx) {
+            isZero = false
+            amount = tx.amount
+            actionPayerId = tx.from
+            actionReceiverId = tx.to
+
+            if (tx.from === member.id && tx.to === selfId) {
+                // They owe YOU
+                isPositive = true
+                type = 'receive'
+                text = "Owes you"
+            } else if (tx.from === selfId && tx.to === member.id) {
+                // YOU owe them
+                isPositive = false
+                type = 'pay'
+                text = "You owe"
+            } else {
+                // Third party debt
+                type = 'record'
+                const otherId = tx.from === member.id ? tx.to : tx.from
+                const otherName = groupMembers.find(m => m.id === otherId)?.name || "Unknown"
+                if (tx.from === member.id) {
+                    // They owe a third party
+                    isPositive = false
+                    text = `Owes ${otherName}`
+                } else {
+                    // They get back from a third party
+                    isPositive = true
+                    text = `Gets back from ${otherName}`
+                }
+            }
         }
     }
 
     const getButton = () => {
         if (isSelf) return null // No buttons on self card
+        if (type === 'record') return "Record"
         return isPositive ? "Collect" : "Settle"
     }
 
@@ -64,7 +97,8 @@ const MemberItem = memo(({ member, transaction, isSelf, selfBalance, onSettle }:
                     {!isZero && !isSelf && (
                         <div className={cn(
                             "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card",
-                            isPositive ? "bg-emerald-500" : "bg-rose-500"
+                            isPositive ? "bg-emerald-500" : "bg-rose-500",
+                            type === 'record' && "bg-blue-500" // Optional: distinct color for third-party
                         )} />
                     )}
                 </div>
@@ -76,11 +110,10 @@ const MemberItem = memo(({ member, transaction, isSelf, selfBalance, onSettle }:
                     {!isZero && (
                         <span className={cn(
                             "text-xs font-bold tabular-nums",
-                            !isSelf ? (isPositive ? "text-emerald-500" : "text-rose-500") : "text-muted-foreground"
+                            !isSelf ? (isPositive ? "text-emerald-500" : "text-rose-500") : "text-muted-foreground",
+                            type === 'record' && "text-blue-500" // Optional: distinct color for third-party
                         )}>
-                            {isSelf
-                                ? (isPositive ? "Gets back overall" : "Owes overall")
-                                : (isPositive ? "Owes you" : "You owe")} {formatAmount(amount)}
+                            {text} {formatAmount(amount)}
                         </span>
                     )}
                     {isZero && <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{isSelf ? "Settled up overall" : "Settled up"}</span>}
@@ -93,11 +126,12 @@ const MemberItem = memo(({ member, transaction, isSelf, selfBalance, onSettle }:
                     variant={isPositive ? "secondary" : "destructive"}
                     className={cn(
                         "h-9 px-4 text-xs font-bold shadow-sm transition-all active:scale-95 rounded-xl",
-                        isPositive ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20"
+                        isPositive ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20",
+                        type === 'record' && "bg-blue-500/10 text-blue-600 hover:bg-blue-500/20"
                     )}
                     onClick={(e) => {
                         e.stopPropagation()
-                        onSettle(type, member.id, amount)
+                        onSettle(type, actionPayerId, actionReceiverId, amount)
                     }}
                 >
                     {getButton()}
@@ -186,7 +220,7 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
         payerId?: string,
         receiverId?: string,
         maxAmount: number,
-        mode: 'settle' | 'collect'
+        mode: 'settle' | 'collect' | 'record'
     }>({ maxAmount: 0, mode: 'settle' })
 
     const group = state.groups.find(g => g.id === id)
@@ -243,25 +277,14 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
         })
     }, [dispatch])
 
-    const openSettlement = useCallback((type: 'pay' | 'receive', memberId: string, amount: number) => {
+    const openSettlement = useCallback((type: 'pay' | 'receive' | 'record', payerId: string, receiverId: string, amount: number) => {
         if (!selfId) return
-        if (type === 'pay') {
-            // Self owes Member
-            setSettlementContext({
-                payerId: selfId,
-                receiverId: memberId,
-                maxAmount: amount,
-                mode: 'settle'
-            })
-        } else {
-            // Member owes Self
-            setSettlementContext({
-                payerId: memberId,
-                receiverId: selfId,
-                maxAmount: amount,
-                mode: 'collect'
-            })
-        }
+        setSettlementContext({
+            payerId: payerId,
+            receiverId: receiverId,
+            maxAmount: amount,
+            mode: type === 'record' ? 'record' : (type === 'pay' ? 'settle' : 'collect')
+        })
         setSettlementModalOpen(true)
     }, [selfId])
 
@@ -304,24 +327,18 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                         </Button>
                     </div>
                     <div className="grid gap-3">
-                        {group.members.map(member => {
-                            // Find any direct transaction between Self and this member
-                            const tx = selfId ? transactions.find(t =>
-                                (t.from === selfId && t.to === member.id) ||
-                                (t.from === member.id && t.to === selfId)
-                            ) : null
-
-                            return (
-                                <MemberItem
-                                    key={member.id}
-                                    member={member}
-                                    transaction={tx || null}
-                                    isSelf={member.id === selfId}
-                                    selfBalance={balances[member.id] || 0}
-                                    onSettle={openSettlement}
-                                />
-                            )
-                        })}
+                        {group.members.map(member => (
+                            <MemberItem
+                                key={member.id}
+                                member={member}
+                                allTransactions={transactions}
+                                groupMembers={group.members}
+                                isSelf={member.id === selfId}
+                                selfId={selfId}
+                                selfBalance={balances[member.id] || 0}
+                                onSettle={openSettlement}
+                            />
+                        ))}
                         {group.members.length === 0 && (
                             <div className="text-center py-12 text-muted-foreground bg-secondary/50 rounded-3xl border border-dashed border-border/50">
                                 No members yet.
