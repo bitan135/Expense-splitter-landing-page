@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react"
 import { Modal } from "@/components/ui/modal"
 import { Input } from "@/components/ui/base"
+import { useTheme } from "next-themes"
 import { useUpiConfig, isValidUpiId } from "@/lib/upi-store"
+import { Moon, Sun, Monitor, Check } from "lucide-react"
 
 interface SettingsModalProps {
     isOpen: boolean
@@ -11,15 +13,48 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
+    const { theme, setTheme } = useTheme()
     const { upiId, name, setUpiId, setName, loaded } = useUpiConfig()
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => { setMounted(true) }, [])
 
     const upiIdError = upiId.trim().length > 0 && !isValidUpiId(upiId)
+    const activeTheme = mounted ? theme : 'system'
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Settings">
             <div className="space-y-6 pt-1">
 
-                {/* UPI Details Section */}
+                {/* Theme */}
+                <section>
+                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 ml-1">
+                        Appearance
+                    </h3>
+                    <div className="flex gap-2">
+                        {([
+                            { key: 'system', icon: Monitor, label: 'Auto' },
+                            { key: 'light', icon: Sun, label: 'Light' },
+                            { key: 'dark', icon: Moon, label: 'Dark' },
+                        ] as const).map(({ key, icon: Icon, label }) => (
+                            <button
+                                key={key}
+                                onClick={() => setTheme(key)}
+                                className={`flex-1 flex items-center justify-center gap-1.5 h-11 rounded-2xl font-semibold text-sm transition-all duration-150 ${activeTheme === key
+                                    ? "bg-primary text-primary-foreground shadow-lg"
+                                    : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                                    }`}
+                            >
+                                <Icon size={14} />
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                </section>
+
+                <div className="border-t border-border/50" />
+
+                {/* UPI Details */}
                 <section>
                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 ml-1">
                         UPI Details
@@ -64,7 +99,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         </div>
                     )}
 
-                    {/* Status indicator */}
                     {loaded && upiId.trim() && name.trim() && !upiIdError && (
                         <div className="flex items-center gap-2 mt-3 ml-1">
                             <div className="w-2 h-2 rounded-full bg-emerald-500" />

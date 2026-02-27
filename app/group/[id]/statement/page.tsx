@@ -92,7 +92,7 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
                             const from = group.members.find(m => m.id === s.from)?.name
                             const to = group.members.find(m => m.id === s.to)?.name
                             return (
-                                <Card key={i} className="p-5 space-y-3 bg-gradient-to-r from-card to-secondary/20">
+                                <Card key={i} className="p-5 bg-gradient-to-r from-card to-secondary/20">
                                     <div className="flex items-center gap-4">
                                         <div className="flex-1 flex items-center justify-between">
                                             <div className="flex flex-col">
@@ -115,13 +115,6 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
                                             <span className="font-bold text-lg text-primary tabular-nums">{formatAmount(s.amount)}</span>
                                         </div>
                                     </div>
-                                    <Button
-                                        size="sm"
-                                        className="w-full h-9 text-xs font-bold rounded-xl"
-                                        onClick={() => router.push(`/group/${id}`)}
-                                    >
-                                        Settle This
-                                    </Button>
                                 </Card>
                             )
                         })}

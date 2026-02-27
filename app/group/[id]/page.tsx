@@ -18,8 +18,11 @@ const MemberItem = memo(({ member, balance, isSelf, selfId, onSettle }: {
     const isPositive = balance > 0
     const isZero = Math.abs(balance) < 0.01
 
-    // Only show action buttons on self member (or all if selfId not set)
-    const showButton = !isZero && (!selfId || isSelf)
+    // Determine button label
+    const getButton = () => {
+        if (isSelf) return isPositive ? "Collect" : "Settle"
+        return "Record"
+    }
 
     return (
         <Card className={cn("p-4 flex justify-between items-center active-press", isSelf && "ring-1 ring-primary/20")}>
@@ -55,20 +58,22 @@ const MemberItem = memo(({ member, balance, isSelf, selfId, onSettle }: {
                 </div>
             </div>
 
-            {showButton && (
+            {!isZero && (
                 <Button
                     size="sm"
                     variant={isPositive ? "secondary" : "destructive"}
                     className={cn(
                         "h-9 px-4 text-xs font-bold shadow-sm transition-all active:scale-95 rounded-xl",
-                        isPositive ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20"
+                        isSelf
+                            ? (isPositive ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20")
+                            : "bg-secondary text-muted-foreground hover:bg-secondary/80"
                     )}
                     onClick={(e) => {
                         e.stopPropagation()
                         onSettle(isPositive ? 'receive' : 'pay', member.id, Math.abs(balance))
                     }}
                 >
-                    {isPositive ? "Collect" : "Settle"}
+                    {getButton()}
                 </Button>
             )}
         </Card>
