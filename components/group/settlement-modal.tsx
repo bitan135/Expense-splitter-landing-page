@@ -399,8 +399,7 @@ export function SettlementModal({
                                     className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
                                 >
                                     <div className="w-14 h-14 rounded-2xl bg-white border border-border flex items-center justify-center shadow-sm">
-                                        {/* Use a simple text logo for GPay since we don't have the SVG asset handy */}
-                                        <span className="font-black text-lg" style={{ color: '#4285F4' }}>G<span style={{ color: '#EA4335' }}>P</span><span style={{ color: '#FBBC05' }}>a</span><span style={{ color: '#34A853' }}>y</span></span>
+                                        <img src="/icons/gpay.svg" alt="GPay" className="w-8 h-8 object-contain" />
                                     </div>
                                     <span className="font-semibold text-sm">GPay</span>
                                 </button>
@@ -411,7 +410,7 @@ export function SettlementModal({
                                     className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
                                 >
                                     <div className="w-14 h-14 rounded-2xl bg-[#002970] flex items-center justify-center shadow-md">
-                                        <span className="font-black text-[#00baf2] text-sm">Pay</span><span className="font-black text-white text-sm">tm</span>
+                                        <img src="/icons/paytm.svg" alt="Paytm" className="w-9 h-9 object-contain" />
                                     </div>
                                     <span className="font-semibold text-sm">Paytm</span>
                                 </button>
@@ -422,7 +421,7 @@ export function SettlementModal({
                                     className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
                                 >
                                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
-                                        <Smartphone size={24} className="text-white" />
+                                        <img src="/icons/phonepe.svg" alt="PhonePe" className="w-8 h-8 object-contain invert" />
                                     </div>
                                     <span className="font-semibold text-sm">PhonePe</span>
                                 </button>
