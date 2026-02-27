@@ -11,16 +11,27 @@ import { calculateBalances } from "@/lib/logic/calculateBalances"
 import { cn, formatAmount } from "@/lib/utils"
 import { Group, Expense, Member } from "@/types"
 
-const MemberItem = memo(({ member, balance, onSettle }: { member: Member, balance: number, onSettle: (type: 'pay' | 'receive', memberId: string, amount: number) => void }) => {
+const MemberItem = memo(({ member, balance, isSelf, selfId, onSettle }: {
+    member: Member, balance: number, isSelf: boolean, selfId?: string,
+    onSettle: (type: 'pay' | 'receive', memberId: string, amount: number) => void
+}) => {
     const isPositive = balance > 0
     const isZero = Math.abs(balance) < 0.01
 
+    // Only show action buttons on self member (or all if selfId not set)
+    const showButton = !isZero && (!selfId || isSelf)
+
     return (
-        <Card className="p-4 flex justify-between items-center active-press">
+        <Card className={cn("p-4 flex justify-between items-center active-press", isSelf && "ring-1 ring-primary/20")}>
             <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center text-foreground font-bold text-base relative">
                     {member.name.substring(0, 2).toUpperCase()}
-                    {!isZero && (
+                    {isSelf && (
+                        <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[8px] font-black px-1.5 py-0.5 rounded-full leading-none shadow-sm">
+                            YOU
+                        </div>
+                    )}
+                    {!isZero && !isSelf && (
                         <div className={cn(
                             "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card",
                             isPositive ? "bg-emerald-500" : "bg-rose-500"
@@ -29,8 +40,8 @@ const MemberItem = memo(({ member, balance, onSettle }: { member: Member, balanc
                 </div>
                 <div className="flex flex-col">
                     <span className="font-semibold text-base">{member.name}</span>
-                    {member.contact && (
-                        <span className="text-[11px] text-muted-foreground/70 tabular-nums">{member.contact}</span>
+                    {member.upiId && (
+                        <span className="text-[11px] text-muted-foreground/70 tabular-nums">{member.upiId}</span>
                     )}
                     {!isZero && (
                         <span className={cn(
@@ -44,12 +55,12 @@ const MemberItem = memo(({ member, balance, onSettle }: { member: Member, balanc
                 </div>
             </div>
 
-            {!isZero && (
+            {showButton && (
                 <Button
                     size="sm"
                     variant={isPositive ? "secondary" : "destructive"}
                     className={cn(
-                        "h-8 px-3 text-xs font-bold shadow-sm transition-all active:scale-95",
+                        "h-9 px-4 text-xs font-bold shadow-sm transition-all active:scale-95 rounded-xl",
                         isPositive ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20"
                     )}
                     onClick={(e) => {
@@ -125,7 +136,7 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
     const router = useRouter()
     const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
     const [newMemberName, setNewMemberName] = useState("")
-    const [newMemberContact, setNewMemberContact] = useState("")
+    const [newMemberUpi, setNewMemberUpi] = useState("")
 
     // Detect Contact Picker API on client (cannot check during SSR)
     const [contactsSupported, setContactsSupported] = useState(false)
@@ -142,23 +153,38 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
     const [settlementContext, setSettlementContext] = useState<{
         payerId?: string,
         receiverId?: string,
-        maxAmount: number
-    }>({ maxAmount: 0 })
+        maxAmount: number,
+        mode: 'settle' | 'collect'
+    }>({ maxAmount: 0, mode: 'settle' })
 
     const group = state.groups.find(g => g.id === id)
     const balances = useMemo(() => group ? calculateBalances(group) : {}, [group])
+    const selfId = group?.selfId
+    const [selfPickerOpen, setSelfPickerOpen] = useState(false)
+
+    // Show self-picker when selfId is unset and group has members
+    useEffect(() => {
+        if (group && group.members.length > 0 && !group.selfId) {
+            setSelfPickerOpen(true)
+        }
+    }, [group])
+
+    const handleSetSelf = useCallback((memberId: string) => {
+        dispatch({ type: "SET_SELF", payload: { groupId: id, memberId } })
+        setSelfPickerOpen(false)
+    }, [dispatch, id])
 
     const handleAddMember = useCallback(() => {
         if (!newMemberName.trim()) return
-        const contact = newMemberContact.replace(/\D/g, '')
+        const upiVal = newMemberUpi.trim()
         dispatch({
             type: "ADD_MEMBER",
-            payload: { groupId: id, name: newMemberName.trim(), ...(contact ? { contact } : {}) }
+            payload: { groupId: id, name: newMemberName.trim(), ...(upiVal ? { upiId: upiVal } : {}) }
         })
         setNewMemberName("")
-        setNewMemberContact("")
+        setNewMemberUpi("")
         setIsAddMemberOpen(false)
-    }, [dispatch, id, newMemberName, newMemberContact])
+    }, [dispatch, id, newMemberName, newMemberUpi])
 
     const handleImportContact = useCallback(async () => {
         try {
@@ -169,7 +195,7 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
             if (contacts && contacts.length > 0) {
                 const c = contacts[0]
                 if (c.name && c.name.length > 0) setNewMemberName(c.name[0])
-                if (c.tel && c.tel.length > 0) setNewMemberContact(c.tel[0].replace(/\D/g, ''))
+                if (c.tel && c.tel.length > 0) setNewMemberUpi(c.tel[0].replace(/\D/g, ''))
             }
         } catch {
             // User cancelled or API error — ignore
@@ -185,26 +211,26 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
 
     const openSettlement = useCallback((type: 'pay' | 'receive', memberId: string, amount: number) => {
         if (type === 'pay') {
-            // Member owes money — they are the Payer.
-            // Smart: auto-select the member with the highest positive balance as receiver
+            // Member owes money — they are the Payer (settling)
             const bestReceiver = Object.entries(balances)
-                .filter(([id, bal]) => bal > 0.01 && id !== memberId)
+                .filter(([rid, bal]) => bal > 0.01 && rid !== memberId)
                 .sort(([, a], [, b]) => b - a)[0]
             setSettlementContext({
                 payerId: memberId,
                 receiverId: bestReceiver?.[0],
-                maxAmount: amount
+                maxAmount: amount,
+                mode: 'settle'
             })
         } else {
-            // Member is owed money — they are the Receiver.
-            // Smart: auto-select the member with the most negative balance as payer
+            // Member is owed money — they are the Receiver (collecting)
             const bestPayer = Object.entries(balances)
-                .filter(([id, bal]) => bal < -0.01 && id !== memberId)
+                .filter(([pid, bal]) => bal < -0.01 && pid !== memberId)
                 .sort(([, a], [, b]) => a - b)[0]
             setSettlementContext({
                 payerId: bestPayer?.[0],
                 receiverId: memberId,
-                maxAmount: amount
+                maxAmount: amount,
+                mode: 'collect'
             })
         }
         setSettlementModalOpen(true)
@@ -253,6 +279,8 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                                 key={member.id}
                                 member={member}
                                 balance={balances[member.id] || 0}
+                                isSelf={member.id === selfId}
+                                selfId={selfId}
                                 onSettle={openSettlement}
                             />
                         ))}
@@ -316,7 +344,6 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                 title="Add Member"
             >
                 <div className="space-y-4 pt-2">
-                    {/* Import from Contacts button — only shown when Contact Picker API is available */}
                     {contactsSupported && (
                         <button
                             onClick={handleImportContact}
@@ -335,13 +362,36 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                         className="text-lg bg-secondary"
                     />
                     <Input
-                        placeholder="Phone number (optional)"
-                        value={newMemberContact}
-                        onChange={(e) => setNewMemberContact(e.target.value)}
-                        inputMode="tel"
+                        placeholder="UPI ID or Phone (optional)"
+                        value={newMemberUpi}
+                        onChange={(e) => setNewMemberUpi(e.target.value)}
                         className="text-base bg-secondary"
+                        autoCapitalize="none"
+                        autoCorrect="off"
                     />
                     <Button className="w-full" size="lg" onClick={handleAddMember}>Add to Group</Button>
+                </div>
+            </Modal>
+
+            {/* Self Picker */}
+            <Modal
+                isOpen={selfPickerOpen}
+                onClose={() => setSelfPickerOpen(false)}
+                title="Which one is you?"
+            >
+                <div className="grid gap-3 pt-2">
+                    {group.members.map(m => (
+                        <button
+                            key={m.id}
+                            onClick={() => handleSetSelf(m.id)}
+                            className="flex items-center gap-4 p-4 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all active:scale-[0.97]"
+                        >
+                            <div className="h-12 w-12 rounded-full bg-background flex items-center justify-center text-foreground font-bold text-base">
+                                {m.name.substring(0, 2).toUpperCase()}
+                            </div>
+                            <span className="font-semibold text-lg">{m.name}</span>
+                        </button>
+                    ))}
                 </div>
             </Modal>
 
@@ -353,6 +403,7 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                 initialPayerId={settlementContext.payerId}
                 initialReceiverId={settlementContext.receiverId}
                 maxAmount={settlementContext.maxAmount}
+                mode={settlementContext.mode}
             />
         </div>
     )

@@ -4,6 +4,7 @@ export interface Member {
     id: string;
     name: string;
     contact?: string; // sanitised phone number (digits only)
+    upiId?: string;   // UPI VPA (e.g. name@upi) or phone number for UPI settlement
 }
 
 export interface Expense {
@@ -25,4 +26,5 @@ export interface Group {
     expenses: Expense[];
     currency: string;
     lastUpdated: number;
+    selfId?: string; // memberId of the current user in this group
 }

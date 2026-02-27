@@ -19,40 +19,54 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
     React.useEffect(() => {
         if (isOpen) {
             setShow(true)
+            // Prevent body scroll when modal is open
+            document.body.style.overflow = 'hidden'
             setTimeout(() => setAnimate(true), 10)
         } else {
             setAnimate(false)
-            setTimeout(() => setShow(false), 150)
+            document.body.style.overflow = ''
+            setTimeout(() => setShow(false), 200)
         }
+        return () => { document.body.style.overflow = '' }
     }, [isOpen])
 
     if (!show) return null
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+            {/* Backdrop */}
             <div
                 className={cn(
-                    "fixed inset-0 bg-black/50 transition-opacity duration-150",
+                    "fixed inset-0 bg-black/60 transition-opacity duration-200",
                     animate ? "opacity-100" : "opacity-0"
                 )}
                 onClick={onClose}
             />
+            {/* Bottom Sheet */}
             <div
                 className={cn(
-                    "relative w-full max-w-lg transform rounded-2xl bg-background p-6 shadow-xl transition-all duration-150",
-                    animate ? "scale-100 opacity-100 translate-y-0" : "scale-95 opacity-0 translate-y-4",
+                    "relative w-full max-w-lg transform rounded-t-3xl bg-background px-6 pb-8 pt-3 shadow-2xl transition-all duration-200 ease-out max-h-[90vh] overflow-y-auto",
+                    animate ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
                     className
                 )}
             >
-                <div className="flex items-center justify-between mb-4">
-                    {title && <h2 className="text-lg font-semibold">{title}</h2>}
+                {/* Drag Handle */}
+                <div className="flex justify-center mb-4">
+                    <div className="w-10 h-1 rounded-full bg-muted-foreground/20" />
+                </div>
+
+                {/* Header */}
+                <div className="flex items-center justify-between mb-5">
+                    {title && <h2 className="text-xl font-bold tracking-tight">{title}</h2>}
                     <button
                         onClick={onClose}
-                        className="rounded-full p-1 hover:bg-muted transition-colors"
+                        className="rounded-full p-2 hover:bg-muted transition-colors -mr-1"
                     >
-                        <X className="h-5 w-5 opacity-70" />
+                        <X className="h-5 w-5 opacity-50" />
                     </button>
                 </div>
+
+                {/* Content */}
                 {children}
             </div>
         </div>

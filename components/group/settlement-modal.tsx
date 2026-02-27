@@ -19,6 +19,7 @@ interface SettlementModalProps {
     initialPayerId?: string
     initialReceiverId?: string
     maxAmount?: number
+    mode?: 'settle' | 'collect'
 }
 
 export function SettlementModal({
@@ -27,7 +28,8 @@ export function SettlementModal({
     group,
     initialPayerId,
     initialReceiverId,
-    maxAmount = 0
+    maxAmount = 0,
+    mode = 'settle'
 }: SettlementModalProps) {
     const { dispatch } = useStore()
     const { upiId, name: upiName, isValid: upiIsValid } = useUpiConfig()
@@ -99,18 +101,21 @@ export function SettlementModal({
         setUpiQrOpen(true)
     }
 
-    // UPI Pay-to-Mobile: deep-link using receiver's phone number
+    // UPI Pay: deep-link using receiver's upiId (or phone)
     const receiverMember = group.members.find(m => m.id === receiverId)
-    const receiverHasContact = !!receiverMember?.contact
+    const receiverHasUpi = !!receiverMember?.upiId
 
     const handlePayViaApp = useCallback((app: 'bhim' | 'phonepe') => {
-        if (!receiverMember?.contact) return
-        const phone = receiverMember.contact.replace(/\D/g, '')
+        if (!receiverMember?.upiId) return
+        const rawId = receiverMember.upiId.trim()
         const settleAmount = safeFloat(parseFloat(amount))
         if (isNaN(settleAmount) || settleAmount <= 0) return
 
+        // If upiId contains @, use as-is. Otherwise treat as phone + @upi
+        const vpa = rawId.includes('@') ? rawId : `${rawId.replace(/\D/g, '')}@upi`
+
         const params = new URLSearchParams({
-            pa: `${phone}@upi`,
+            pa: vpa,
             pn: receiverMember.name,
             am: settleAmount.toFixed(2),
             cu: 'INR',
@@ -121,21 +126,17 @@ export function SettlementModal({
         let url: string
 
         if (isIOS) {
-            // iOS: use app-specific URL schemes
             if (app === 'phonepe') {
                 url = `phonepe://pay?${params.toString()}`
             } else {
                 url = `upi://pay?${params.toString()}`
             }
         } else {
-            // Android: use intent URLs targeting specific packages
             const pkg = app === 'phonepe' ? 'com.phonepe.app' : 'in.org.npci.upiapp'
             url = `intent://pay?${params.toString()}#Intent;scheme=upi;package=${pkg};end`
         }
 
         window.location.href = url
-
-        // After UPI app returns, show confirmation
         setTimeout(() => setStep("upi-confirm"), 800)
     }, [receiverMember, amount])
 
@@ -255,7 +256,7 @@ export function SettlementModal({
                                 Choose Method
                             </p>
 
-                            <div className={`grid ${receiverHasContact ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}>
+                            <div className="grid grid-cols-2 gap-3">
                                 <button
                                     onClick={handleCash}
                                     className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
@@ -266,26 +267,40 @@ export function SettlementModal({
                                     <span className="font-semibold text-sm">Cash</span>
                                 </button>
 
-                                <button
-                                    onClick={handleUpi}
-                                    className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
-                                >
-                                    <div className="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center">
-                                        <QrCode size={24} className="text-violet-600" />
-                                    </div>
-                                    <span className="font-semibold text-sm">UPI QR</span>
-                                </button>
-
-                                {receiverHasContact && (
+                                {mode === 'collect' ? (
+                                    /* Collect mode: show QR Code */
                                     <button
-                                        onClick={() => setStep("upi-app-select")}
+                                        onClick={handleUpi}
                                         className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
                                     >
-                                        <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                            <Smartphone size={24} className="text-blue-600" />
+                                        <div className="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center">
+                                            <QrCode size={24} className="text-violet-600" />
                                         </div>
-                                        <span className="font-semibold text-sm">Pay UPI</span>
+                                        <span className="font-semibold text-sm">Show QR</span>
                                     </button>
+                                ) : (
+                                    /* Settle mode: show Pay UPI (if receiver has upiId) */
+                                    receiverHasUpi ? (
+                                        <button
+                                            onClick={() => setStep("upi-app-select")}
+                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                        >
+                                            <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                                <Smartphone size={24} className="text-blue-600" />
+                                            </div>
+                                            <span className="font-semibold text-sm">Pay UPI</span>
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={handleUpi}
+                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                        >
+                                            <div className="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center">
+                                                <QrCode size={24} className="text-violet-600" />
+                                            </div>
+                                            <span className="font-semibold text-sm">UPI QR</span>
+                                        </button>
+                                    )
                                 )}
                             </div>
 
