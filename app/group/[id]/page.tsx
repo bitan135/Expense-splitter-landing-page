@@ -241,12 +241,13 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
         setSettlementModalOpen(true)
     }, [balances])
 
+    const totalSpend = useMemo(() =>
+        group ? group.expenses.filter(e => e.type !== 'settlement').reduce((sum, e) => sum + e.amount, 0) : 0
+        , [group])
+
     if (!state.loaded) return <div className="p-10 text-center text-muted-foreground">Loading...</div>
     if (!group) return <div className="p-10 text-center text-muted-foreground">Group not found</div>
 
-    const totalSpend = useMemo(() =>
-        group.expenses.filter(e => e.type !== 'settlement').reduce((sum, e) => sum + e.amount, 0)
-        , [group.expenses])
 
     return (
         <div className="min-h-screen bg-background pb-32">
