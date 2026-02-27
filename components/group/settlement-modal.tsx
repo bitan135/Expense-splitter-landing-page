@@ -36,7 +36,7 @@ export function SettlementModal({
     const [amount, setAmount] = useState("")
     const [payerId, setPayerId] = useState(initialPayerId || "")
     const [receiverId, setReceiverId] = useState(initialReceiverId || "")
-    const [step, setStep] = useState<SettlementStep>("form")
+    const [step, setStep] = useState<SettlementStep>("method")
     const [upiQrOpen, setUpiQrOpen] = useState(false)
     const [upiError, setUpiError] = useState("")
 
@@ -44,11 +44,20 @@ export function SettlementModal({
         if (isOpen) {
             setPayerId(initialPayerId || "")
             setReceiverId(initialReceiverId || "")
-            setAmount("")
-            setStep("form")
+            if (maxAmount > 0) {
+                setAmount(maxAmount.toString())
+            } else {
+                setAmount("")
+            }
+            // If we have both payer and receiver pre-filled from Group page, skip form
+            if (initialPayerId && initialReceiverId && maxAmount > 0) {
+                setStep("method")
+            } else {
+                setStep("form")
+            }
             setUpiError("")
         }
-    }, [isOpen, initialPayerId, initialReceiverId])
+    }, [isOpen, initialPayerId, initialReceiverId, maxAmount])
 
     const numAmount = safeFloat(parseFloat(amount))
     const formValid = !!payerId && !!receiverId && payerId !== receiverId && !isNaN(numAmount) && numAmount > 0
@@ -105,7 +114,7 @@ export function SettlementModal({
     const receiverMember = group.members.find(m => m.id === receiverId)
     const receiverHasUpi = !!receiverMember?.upiId
 
-    const handlePayViaApp = useCallback((app: 'bhim' | 'phonepe') => {
+    const handlePayViaApp = useCallback((app: 'phonepe' | 'gpay' | 'paytm' | 'generic') => {
         if (!receiverMember?.upiId) return
         const rawId = receiverMember.upiId.trim()
         const settleAmount = safeFloat(parseFloat(amount))
@@ -128,15 +137,28 @@ export function SettlementModal({
         if (isIOS) {
             if (app === 'phonepe') {
                 url = `phonepe://pay?${params.toString()}`
+            } else if (app === 'gpay') {
+                url = `gpay://upi/pay?${params.toString()}`
+            } else if (app === 'paytm') {
+                url = `paytmmp://pay?${params.toString()}`
             } else {
-                // BHIM on iOS: bhim://pay (no /upi path)
-                url = `bhim://pay?${params.toString()}`
+                url = `upi://pay?${params.toString()}`
             }
         } else {
             // Android: explicit intent with action + category to force package targeting
-            const pkg = app === 'phonepe' ? 'com.phonepe.app' : 'in.org.npci.upiapp'
+            let pkg = 'in.org.npci.upiapp' // generic BHIM fallback
+            if (app === 'phonepe') pkg = 'com.phonepe.app'
+            if (app === 'gpay') pkg = 'com.google.android.apps.nbu.paisa.user'
+            if (app === 'paytm') pkg = 'net.one97.paytm'
+
             const playStoreUrl = `https://play.google.com/store/apps/details?id=${pkg}`
-            url = `intent://pay?${params.toString()}#Intent;scheme=upi;package=${pkg};action=android.intent.action.VIEW;category=android.intent.category.DEFAULT;S.browser_fallback_url=${encodeURIComponent(playStoreUrl)};end`
+
+            if (app === 'generic') {
+                // generic intent
+                url = `intent://pay?${params.toString()}#Intent;scheme=upi;action=android.intent.action.VIEW;category=android.intent.category.DEFAULT;end`
+            } else {
+                url = `intent://pay?${params.toString()}#Intent;scheme=upi;package=${pkg};action=android.intent.action.VIEW;category=android.intent.category.DEFAULT;S.browser_fallback_url=${encodeURIComponent(playStoreUrl)};end`
+            }
         }
 
         window.location.href = url
@@ -344,15 +366,27 @@ export function SettlementModal({
                             </p>
 
                             <div className="grid grid-cols-2 gap-3">
-                                {/* BHIM */}
+                                {/* GPay */}
                                 <button
-                                    onClick={() => handlePayViaApp('bhim')}
+                                    onClick={() => handlePayViaApp('gpay')}
                                     className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
                                 >
-                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-sm shadow-md">
-                                        BHIM
+                                    <div className="w-14 h-14 rounded-2xl bg-white border border-border flex items-center justify-center shadow-sm">
+                                        {/* Use a simple text logo for GPay since we don't have the SVG asset handy */}
+                                        <span className="font-black text-lg" style={{ color: '#4285F4' }}>G<span style={{ color: '#EA4335' }}>P</span><span style={{ color: '#FBBC05' }}>a</span><span style={{ color: '#34A853' }}>y</span></span>
                                     </div>
-                                    <span className="font-semibold text-sm">BHIM</span>
+                                    <span className="font-semibold text-sm">GPay</span>
+                                </button>
+
+                                {/* Paytm */}
+                                <button
+                                    onClick={() => handlePayViaApp('paytm')}
+                                    className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                >
+                                    <div className="w-14 h-14 rounded-2xl bg-[#002970] flex items-center justify-center shadow-md">
+                                        <span className="font-black text-[#00baf2] text-sm">Pay</span><span className="font-black text-white text-sm">tm</span>
+                                    </div>
+                                    <span className="font-semibold text-sm">Paytm</span>
                                 </button>
 
                                 {/* PhonePe */}

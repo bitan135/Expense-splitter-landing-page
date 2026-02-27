@@ -11,21 +11,48 @@ import { calculateBalances } from "@/lib/logic/calculateBalances"
 import { cn, formatAmount } from "@/lib/utils"
 import { Group, Expense, Member } from "@/types"
 
-const MemberItem = memo(({ member, balance, isSelf, selfId, onSettle }: {
-    member: Member, balance: number, isSelf: boolean, selfId?: string,
+import { optimizeSettlement, Transaction } from "@/lib/logic/optimizeSettlement"
+
+const MemberItem = memo(({ member, transaction, isSelf, selfBalance, onSettle }: {
+    member: Member, transaction: Transaction | null, isSelf: boolean, selfBalance: number,
     onSettle: (type: 'pay' | 'receive', memberId: string, amount: number) => void
 }) => {
-    const isPositive = balance > 0
-    const isZero = Math.abs(balance) < 0.01
+    // transaction 'from' -> 'to' amount
+    // If we are 'from', we owe them (type: pay)
+    // If we are 'to', they owe us (type: receive)
 
-    // Determine button label
+    let isPositive = false
+    let isZero = true
+    let amount = 0
+    let type: 'pay' | 'receive' = 'pay'
+
+    if (isSelf) {
+        // Self card shows overall global balance
+        isPositive = selfBalance > 0
+        isZero = Math.abs(selfBalance) < 0.01
+        amount = Math.abs(selfBalance)
+    } else if (transaction) {
+        // Other members show their direct debt relative to Self
+        isZero = false
+        amount = transaction.amount
+        if (transaction.from === member.id) {
+            // They owe Self -> Collect
+            isPositive = true
+            type = 'receive'
+        } else {
+            // Self owes them -> Settle
+            isPositive = false
+            type = 'pay'
+        }
+    }
+
     const getButton = () => {
-        if (isSelf) return isPositive ? "Collect" : "Settle"
-        return "Record"
+        if (isSelf) return null // No buttons on self card
+        return isPositive ? "Collect" : "Settle"
     }
 
     return (
-        <Card className={cn("p-4 flex justify-between items-center active-press", isSelf && "ring-1 ring-primary/20")}>
+        <Card className={cn("p-4 flex justify-between items-center active-press", isSelf && "ring-1 ring-primary/20", isSelf && "bg-primary/5")}>
             <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center text-foreground font-bold text-base relative">
                     {member.name.substring(0, 2).toUpperCase()}
@@ -49,28 +76,28 @@ const MemberItem = memo(({ member, balance, isSelf, selfId, onSettle }: {
                     {!isZero && (
                         <span className={cn(
                             "text-xs font-bold tabular-nums",
-                            isPositive ? "text-emerald-500" : "text-rose-500"
+                            !isSelf ? (isPositive ? "text-emerald-500" : "text-rose-500") : "text-muted-foreground"
                         )}>
-                            {isPositive ? "Gets back" : "Owes"} {formatAmount(balance)}
+                            {isSelf
+                                ? (isPositive ? "Gets back overall" : "Owes overall")
+                                : (isPositive ? "Owes you" : "You owe")} {formatAmount(amount)}
                         </span>
                     )}
-                    {isZero && <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Settled</span>}
+                    {isZero && <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{isSelf ? "Settled up overall" : "Settled up"}</span>}
                 </div>
             </div>
 
-            {!isZero && (
+            {!isZero && !isSelf && (
                 <Button
                     size="sm"
                     variant={isPositive ? "secondary" : "destructive"}
                     className={cn(
                         "h-9 px-4 text-xs font-bold shadow-sm transition-all active:scale-95 rounded-xl",
-                        isSelf
-                            ? (isPositive ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20")
-                            : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                        isPositive ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20"
                     )}
                     onClick={(e) => {
                         e.stopPropagation()
-                        onSettle(isPositive ? 'receive' : 'pay', member.id, Math.abs(balance))
+                        onSettle(type, member.id, amount)
                     }}
                 >
                     {getButton()}
@@ -164,6 +191,8 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
 
     const group = state.groups.find(g => g.id === id)
     const balances = useMemo(() => group ? calculateBalances(group) : {}, [group])
+    const transactions = useMemo(() => optimizeSettlement(balances), [balances])
+
     const selfId = group?.selfId
     const [selfPickerOpen, setSelfPickerOpen] = useState(false)
 
@@ -215,31 +244,26 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
     }, [dispatch])
 
     const openSettlement = useCallback((type: 'pay' | 'receive', memberId: string, amount: number) => {
+        if (!selfId) return
         if (type === 'pay') {
-            // Member owes money — they are the Payer (settling)
-            const bestReceiver = Object.entries(balances)
-                .filter(([rid, bal]) => bal > 0.01 && rid !== memberId)
-                .sort(([, a], [, b]) => b - a)[0]
+            // Self owes Member
             setSettlementContext({
-                payerId: memberId,
-                receiverId: bestReceiver?.[0],
+                payerId: selfId,
+                receiverId: memberId,
                 maxAmount: amount,
                 mode: 'settle'
             })
         } else {
-            // Member is owed money — they are the Receiver (collecting)
-            const bestPayer = Object.entries(balances)
-                .filter(([pid, bal]) => bal < -0.01 && pid !== memberId)
-                .sort(([, a], [, b]) => a - b)[0]
+            // Member owes Self
             setSettlementContext({
-                payerId: bestPayer?.[0],
-                receiverId: memberId,
+                payerId: memberId,
+                receiverId: selfId,
                 maxAmount: amount,
                 mode: 'collect'
             })
         }
         setSettlementModalOpen(true)
-    }, [balances])
+    }, [selfId])
 
     const totalSpend = useMemo(() =>
         group ? group.expenses.filter(e => e.type !== 'settlement').reduce((sum, e) => sum + e.amount, 0) : 0
@@ -280,16 +304,24 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                         </Button>
                     </div>
                     <div className="grid gap-3">
-                        {group.members.map(member => (
-                            <MemberItem
-                                key={member.id}
-                                member={member}
-                                balance={balances[member.id] || 0}
-                                isSelf={member.id === selfId}
-                                selfId={selfId}
-                                onSettle={openSettlement}
-                            />
-                        ))}
+                        {group.members.map(member => {
+                            // Find any direct transaction between Self and this member
+                            const tx = selfId ? transactions.find(t =>
+                                (t.from === selfId && t.to === member.id) ||
+                                (t.from === member.id && t.to === selfId)
+                            ) : null
+
+                            return (
+                                <MemberItem
+                                    key={member.id}
+                                    member={member}
+                                    transaction={tx || null}
+                                    isSelf={member.id === selfId}
+                                    selfBalance={balances[member.id] || 0}
+                                    onSettle={openSettlement}
+                                />
+                            )
+                        })}
                         {group.members.length === 0 && (
                             <div className="text-center py-12 text-muted-foreground bg-secondary/50 rounded-3xl border border-dashed border-border/50">
                                 No members yet.
