@@ -8,7 +8,7 @@ import { Button, Card, Input } from "@/components/ui/base"
 import { Modal } from "@/components/ui/modal"
 import { ArrowLeft, Plus, Users, Receipt, FileText, Trash2, Settings, ArrowRight, Contact } from "lucide-react"
 import { calculateBalances } from "@/lib/logic/calculateBalances"
-import { cn } from "@/lib/utils"
+import { cn, formatAmount } from "@/lib/utils"
 import { Group, Expense, Member } from "@/types"
 
 const MemberItem = memo(({ member, balance, onSettle }: { member: Member, balance: number, onSettle: (type: 'pay' | 'receive', memberId: string, amount: number) => void }) => {
@@ -22,11 +22,9 @@ const MemberItem = memo(({ member, balance, onSettle }: { member: Member, balanc
                     {member.name.substring(0, 2).toUpperCase()}
                     {!isZero && (
                         <div className={cn(
-                            "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-card flex items-center justify-center text-[10px] font-bold text-white",
+                            "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card",
                             isPositive ? "bg-emerald-500" : "bg-rose-500"
-                        )}>
-                            {isPositive ? "R" : "P"}
-                        </div>
+                        )} />
                     )}
                 </div>
                 <div className="flex flex-col">
@@ -39,7 +37,7 @@ const MemberItem = memo(({ member, balance, onSettle }: { member: Member, balanc
                             "text-xs font-bold tabular-nums",
                             isPositive ? "text-emerald-500" : "text-rose-500"
                         )}>
-                            {isPositive ? "Gets back" : "Owes"} ₹{Math.abs(balance).toFixed(2)}
+                            {isPositive ? "Gets back" : "Owes"} {formatAmount(balance)}
                         </span>
                     )}
                     {isZero && <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Settled</span>}
@@ -59,7 +57,7 @@ const MemberItem = memo(({ member, balance, onSettle }: { member: Member, balanc
                         onSettle(isPositive ? 'receive' : 'pay', member.id, Math.abs(balance))
                     }}
                 >
-                    {isPositive ? "Received" : "Settle"}
+                    {isPositive ? "Collect" : "Settle"}
                 </Button>
             )}
         </Card>
@@ -108,10 +106,8 @@ const ExpenseItem = memo(({ expense, group, onClick }: { expense: Expense, group
                     </div>
                 </div>
                 <div className="flex flex-col items-end">
-                    <span className="font-bold text-xl tabular-nums tracking-tight">₹{expense.amount.toFixed(2)}</span>
-                    <div className="text-[10px] text-primary font-medium mt-1 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        View Details →
-                    </div>
+                    <span className="font-bold text-xl tabular-nums tracking-tight">{formatAmount(expense.amount)}</span>
+                    <span className="text-muted-foreground/40 text-lg ml-1">›</span>
                 </div>
             </div>
         </Card>
@@ -189,23 +185,30 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
 
     const openSettlement = useCallback((type: 'pay' | 'receive', memberId: string, amount: number) => {
         if (type === 'pay') {
-            // Member owes money. They are the Payer.
-            // Be smart: Default Receiver? Maybe the one owed the most?
-            // For now, let user pick receiver. Payer is fixed.
+            // Member owes money — they are the Payer.
+            // Smart: auto-select the member with the highest positive balance as receiver
+            const bestReceiver = Object.entries(balances)
+                .filter(([id, bal]) => bal > 0.01 && id !== memberId)
+                .sort(([, a], [, b]) => b - a)[0]
             setSettlementContext({
                 payerId: memberId,
+                receiverId: bestReceiver?.[0],
                 maxAmount: amount
             })
         } else {
-            // Member is owed money. They are the Receiver.
-            // Payer is someone who owes money.
+            // Member is owed money — they are the Receiver.
+            // Smart: auto-select the member with the most negative balance as payer
+            const bestPayer = Object.entries(balances)
+                .filter(([id, bal]) => bal < -0.01 && id !== memberId)
+                .sort(([, a], [, b]) => a - b)[0]
             setSettlementContext({
+                payerId: bestPayer?.[0],
                 receiverId: memberId,
                 maxAmount: amount
             })
         }
         setSettlementModalOpen(true)
-    }, [])
+    }, [balances])
 
     if (!state.loaded) return <div className="p-10 text-center text-muted-foreground">Loading...</div>
     if (!group) return <div className="p-10 text-center text-muted-foreground">Group not found</div>
@@ -220,7 +223,7 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                 title={group.name}
                 rightAction={
                     <Button variant="ghost" size="icon" onClick={() => router.push("/")}>
-                        <ArrowLeft className="text-foreground" />
+                        <ArrowLeft className="text-foreground" size={20} />
                     </Button>
                 }
             />
@@ -281,7 +284,8 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                                 ))
                         ) : (
                             <div className="text-center py-12 text-muted-foreground bg-secondary/50 rounded-3xl border border-dashed border-border/50">
-                                No expenses yet.
+                                <p>No expenses yet.</p>
+                                <p className="text-sm mt-1 opacity-70">Tap <span className="font-semibold">+ Add Expense</span> to get started</p>
                             </div>
                         )}
                     </div>

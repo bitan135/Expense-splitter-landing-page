@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 import { calculateBalances } from "@/lib/logic/calculateBalances"
 import { optimizeSettlement } from "@/lib/logic/optimizeSettlement"
 import { exportStatementPNG } from "@/lib/logic/exportStatementPNG"
-import { cn } from "@/lib/utils"
+import { cn, formatAmount } from "@/lib/utils"
 
 export default function StatementPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params)
@@ -69,7 +69,7 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
                                         </div>
                                         <div className="text-right">
                                             <div className={cn("text-lg font-bold tabular-nums", isZero ? "text-muted-foreground" : (isPositive ? "text-emerald-400" : "text-rose-400"))}>
-                                                {isZero ? "Settled" : `${isPositive ? "+" : "-"}₹${Math.abs(amount).toFixed(2)}`}
+                                                {isZero ? "Settled" : `${isPositive ? "+" : "-"}${formatAmount(amount)}`}
                                             </div>
                                             <div className="text-[10px] uppercase tracking-wide opacity-50 font-bold">
                                                 {isZero ? "All Good" : (isPositive ? "Gets Back" : "Owes")}
@@ -92,27 +92,36 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
                             const from = group.members.find(m => m.id === s.from)?.name
                             const to = group.members.find(m => m.id === s.to)?.name
                             return (
-                                <Card key={i} className="p-5 flex items-center gap-4 bg-gradient-to-r from-card to-secondary/20">
-                                    <div className="flex-1 flex items-center justify-between">
-                                        <div className="flex flex-col">
-                                            <span className="font-medium text-lg text-foreground">{from}</span>
-                                            <span className="text-xs text-muted-foreground uppercase tracking-wide">Must pay</span>
+                                <Card key={i} className="p-5 space-y-3 bg-gradient-to-r from-card to-secondary/20">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex-1 flex items-center justify-between">
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-lg text-foreground">{from}</span>
+                                                <span className="text-xs text-muted-foreground uppercase tracking-wide">Must pay</span>
+                                            </div>
+
+                                            <div className="flex flex-col items-center px-4">
+                                                <span className="text-xs text-muted-foreground mb-1">→</span>
+                                                <div className="h-px w-12 bg-border"></div>
+                                            </div>
+
+                                            <div className="flex flex-col items-end">
+                                                <span className="font-medium text-lg text-foreground">{to}</span>
+                                                <span className="text-xs text-muted-foreground uppercase tracking-wide">Receive</span>
+                                            </div>
                                         </div>
 
-                                        <div className="flex flex-col items-center px-4">
-                                            <span className="text-xs text-muted-foreground mb-1">→</span>
-                                            <div className="h-px w-12 bg-border"></div>
-                                        </div>
-
-                                        <div className="flex flex-col items-end">
-                                            <span className="font-medium text-lg text-foreground">{to}</span>
-                                            <span className="text-xs text-muted-foreground uppercase tracking-wide">Receive</span>
+                                        <div className="pl-4 border-l border-border/50">
+                                            <span className="font-bold text-lg text-primary tabular-nums">{formatAmount(s.amount)}</span>
                                         </div>
                                     </div>
-
-                                    <div className="pl-4 border-l border-border/50">
-                                        <span className="font-bold text-lg text-primary tabular-nums">₹{s.amount.toFixed(0)}</span>
-                                    </div>
+                                    <Button
+                                        size="sm"
+                                        className="w-full h-9 text-xs font-bold rounded-xl"
+                                        onClick={() => router.push(`/group/${id}`)}
+                                    >
+                                        Settle This
+                                    </Button>
                                 </Card>
                             )
                         })}

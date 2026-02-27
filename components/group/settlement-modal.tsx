@@ -234,13 +234,20 @@ export function SettlementModal({
 
                     {step === "method" && (
                         <>
-                            {/* Amount Summary */}
+                            {/* Amount + Direction Summary */}
                             <div className="text-center py-2">
                                 <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">Settling</p>
                                 <p className="text-3xl font-bold tabular-nums">
                                     <span className="text-xl text-muted-foreground mr-1">₹</span>
                                     {numAmount.toFixed(2)}
                                 </p>
+                                {payerId && receiverId && (
+                                    <p className="text-sm text-muted-foreground mt-2 flex items-center justify-center gap-2">
+                                        <span className="font-semibold text-foreground">{group.members.find(m => m.id === payerId)?.name}</span>
+                                        <ArrowRight size={14} className="text-muted-foreground/50" />
+                                        <span className="font-semibold text-foreground">{group.members.find(m => m.id === receiverId)?.name}</span>
+                                    </p>
+                                )}
                             </div>
 
                             {/* Method Selection */}
