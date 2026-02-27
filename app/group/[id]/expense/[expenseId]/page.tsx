@@ -94,24 +94,26 @@ export default function ExpenseDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                 </div>
 
-                {/* Actions */}
-                <div className="grid grid-cols-2 gap-4 pt-4">
-                    <Button
-                        variant="secondary"
-                        size="lg"
-                        className="w-full text-foreground gap-2 h-14 rounded-2xl"
-                        onClick={() => router.push(`/group/${id}/expense/${expense.id}/edit`)}
-                    >
-                        <Edit2 size={18} /> Edit
-                    </Button>
-                    <Button
-                        size="lg"
-                        className="w-full bg-destructive/10 text-destructive hover:bg-destructive/20 gap-2 h-14 rounded-2xl"
-                        onClick={handleDelete}
-                    >
-                        <Trash2 size={18} /> Delete
-                    </Button>
-                </div>
+                {/* Actions — hide for settlements */}
+                {expense.type !== 'settlement' && (
+                    <div className="grid grid-cols-2 gap-4 pt-4">
+                        <Button
+                            variant="secondary"
+                            size="lg"
+                            className="w-full text-foreground gap-2 h-14 rounded-2xl"
+                            onClick={() => router.push(`/group/${id}/expense/${expense.id}/edit`)}
+                        >
+                            <Edit2 size={18} /> Edit
+                        </Button>
+                        <Button
+                            size="lg"
+                            className="w-full bg-destructive/10 text-destructive hover:bg-destructive/20 gap-2 h-14 rounded-2xl"
+                            onClick={handleDelete}
+                        >
+                            <Trash2 size={18} /> Delete
+                        </Button>
+                    </div>
+                )}
 
             </main>
         </div>
