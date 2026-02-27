@@ -132,8 +132,10 @@ export function SettlementModal({
                 url = `upi://pay?${params.toString()}`
             }
         } else {
+            // Android: explicit intent with action + category to force package targeting
             const pkg = app === 'phonepe' ? 'com.phonepe.app' : 'in.org.npci.upiapp'
-            url = `intent://pay?${params.toString()}#Intent;scheme=upi;package=${pkg};end`
+            const playStoreUrl = `https://play.google.com/store/apps/details?id=${pkg}`
+            url = `intent://pay?${params.toString()}#Intent;scheme=upi;package=${pkg};action=android.intent.action.VIEW;category=android.intent.category.DEFAULT;S.browser_fallback_url=${encodeURIComponent(playStoreUrl)};end`
         }
 
         window.location.href = url
