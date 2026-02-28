@@ -33,7 +33,7 @@ export default function HomePage() {
 
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-[calc(env(safe-area-inset-bottom)+2rem)]">
       <Header
         title=""
         rightAction={

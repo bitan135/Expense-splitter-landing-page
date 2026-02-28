@@ -416,16 +416,16 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                                 />
                             ))
                         ) : (
-                            <div className="flex flex-col items-center justify-center py-16 px-6 text-center bg-secondary/30 rounded-[2rem] border border-border/50 shadow-inner">
-                                <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mb-4 shadow-sm ring-1 ring-border/50">
-                                    <span className="text-2xl">💸</span>
+                            <div className="flex flex-col items-center justify-center py-10 px-6 text-center mt-6">
+                                <div className="w-20 h-20 bg-primary/10 rounded-[2rem] flex items-center justify-center mb-6 shadow-organic ring-1 ring-primary/20">
+                                    <span className="text-4xl shadow-sm">💸</span>
                                 </div>
-                                <h3 className="text-lg font-bold mb-1">Split the Bill</h3>
-                                <p className="text-muted-foreground/80 text-sm mb-6 max-w-[200px]">
+                                <h3 className="text-xl font-extrabold mb-2 tracking-tight">Split the Bill</h3>
+                                <p className="text-muted-foreground/80 text-[15px] mb-8 max-w-[240px] leading-relaxed">
                                     Add your first expense to see who owes who.
                                 </p>
                                 <Button
-                                    onClick={() => router.push(`/group/${id}/add-expense`)}
+                                    onClick={() => router.push(`/group/${id}/expense/new`)}
                                     className="h-12 px-6 rounded-full bg-primary/10 text-primary hover:bg-primary/20 shadow-none font-bold active:scale-95 transition-transform border border-primary/20"
                                 >
                                     <Plus size={18} className="mr-2" /> Add Expense
