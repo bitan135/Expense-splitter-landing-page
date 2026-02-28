@@ -229,7 +229,7 @@ export default function EditExpensePage({ params }: { params: Promise<{ id: stri
                                             className={cn(
                                                 "w-6 h-6 rounded-full flex items-center justify-center border-2 transition-colors",
                                                 !excludeList.includes(member.id)
-                                                    ? "bg-emerald-500 border-emerald-500 text-white"
+                                                    ? "bg-primary border-primary text-white"
                                                     : "border-muted-foreground/30 text-transparent"
                                             )}
                                         >

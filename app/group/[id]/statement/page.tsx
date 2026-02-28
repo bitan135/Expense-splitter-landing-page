@@ -68,7 +68,7 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
                                             <span className="font-medium text-lg">{member.name}</span>
                                         </div>
                                         <div className="text-right">
-                                            <div className={cn("text-lg font-bold tabular-nums", isZero ? "text-muted-foreground" : (isPositive ? "text-emerald-400" : "text-rose-400"))}>
+                                            <div className={cn("text-lg font-bold tabular-nums", isZero ? "text-muted-foreground" : (isPositive ? "text-primary" : "text-destructive"))}>
                                                 {isZero ? "Settled" : `${isPositive ? "+" : "-"}${formatAmount(amount)}`}
                                             </div>
                                             <div className="text-[10px] uppercase tracking-wide opacity-50 font-bold">

@@ -114,10 +114,10 @@ export default function HomePage() {
           )
         })}
 
-        <div className="fixed bottom-6 right-6 z-30">
+        <div className="fixed floating-bar right-5 z-30">
           <Button
             size="icon"
-            className="h-14 w-14 rounded-full shadow-lg"
+            className="h-14 w-14 rounded-full shadow-xl shadow-primary/25 active:scale-90 transition-transform"
             onClick={() => setIsModalOpen(true)}
           >
             <Plus size={24} />

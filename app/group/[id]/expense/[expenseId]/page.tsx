@@ -60,8 +60,8 @@ export default function ExpenseDetailPage({ params }: { params: Promise<{ id: st
                             <div className={cn(
                                 "text-[10px] font-bold uppercase px-3 py-1 rounded-full",
                                 expense.settlementMethod === 'upi'
-                                    ? "bg-violet-500/10 text-violet-600"
-                                    : "bg-emerald-500/10 text-emerald-600"
+                                    ? "bg-amber-600/10 text-amber-700 dark:text-amber-500"
+                                    : "bg-primary/10 text-primary"
                             )}>
                                 via {expense.settlementMethod === 'upi' ? 'UPI' : 'Cash'}
                             </div>

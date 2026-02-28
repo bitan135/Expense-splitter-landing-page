@@ -297,8 +297,8 @@ export function SettlementModal({
                                             onClick={handleCash}
                                             className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
                                         >
-                                            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                                                <Banknote size={24} className="text-emerald-600" />
+                                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                                <Banknote size={24} className="text-primary" />
                                             </div>
                                             <span className="font-semibold text-sm">Record Cash</span>
                                         </button>
@@ -306,8 +306,8 @@ export function SettlementModal({
                                             onClick={() => recordSettlement('upi')}
                                             className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
                                         >
-                                            <div className="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center">
-                                                <Smartphone size={24} className="text-violet-600" />
+                                            <div className="w-12 h-12 rounded-full bg-amber-600/10 flex items-center justify-center">
+                                                <Smartphone size={24} className="text-amber-700 dark:text-amber-500" />
                                             </div>
                                             <span className="font-semibold text-sm">Record UPI</span>
                                         </button>
@@ -319,8 +319,8 @@ export function SettlementModal({
                                             onClick={handleCash}
                                             className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
                                         >
-                                            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                                                <Banknote size={24} className="text-emerald-600" />
+                                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                                <Banknote size={24} className="text-primary" />
                                             </div>
                                             <span className="font-semibold text-sm">Cash</span>
                                         </button>
@@ -328,8 +328,8 @@ export function SettlementModal({
                                             onClick={handleUpi}
                                             className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
                                         >
-                                            <div className="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center">
-                                                <QrCode size={24} className="text-violet-600" />
+                                            <div className="w-12 h-12 rounded-full bg-amber-600/10 flex items-center justify-center">
+                                                <QrCode size={24} className="text-amber-700 dark:text-amber-500" />
                                             </div>
                                             <span className="font-semibold text-sm">Show QR</span>
                                         </button>
@@ -341,8 +341,8 @@ export function SettlementModal({
                                             onClick={handleCash}
                                             className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
                                         >
-                                            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                                                <Banknote size={24} className="text-emerald-600" />
+                                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                                <Banknote size={24} className="text-primary" />
                                             </div>
                                             <span className="font-semibold text-sm">Cash</span>
                                         </button>
@@ -350,8 +350,8 @@ export function SettlementModal({
                                             onClick={() => receiverHasUpi ? setStep("upi-app-select") : recordSettlement('upi')}
                                             className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
                                         >
-                                            <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                                <Smartphone size={24} className="text-blue-600" />
+                                            <div className="w-12 h-12 rounded-full bg-amber-600/10 flex items-center justify-center">
+                                                <Smartphone size={24} className="text-amber-700 dark:text-amber-500" />
                                             </div>
                                             <span className="font-semibold text-sm">Pay UPI</span>
                                         </button>
@@ -442,8 +442,8 @@ export function SettlementModal({
                     {step === "upi-confirm" && (
                         <>
                             <div className="text-center py-4">
-                                <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
-                                    <Smartphone size={32} className="text-blue-600" />
+                                <div className="w-16 h-16 rounded-full bg-amber-600/10 flex items-center justify-center mx-auto mb-4">
+                                    <Smartphone size={32} className="text-amber-700 dark:text-amber-500" />
                                 </div>
                                 <p className="text-lg font-bold mb-1">Payment initiated</p>
                                 <p className="text-sm text-muted-foreground">

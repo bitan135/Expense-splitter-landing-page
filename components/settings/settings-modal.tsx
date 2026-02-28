@@ -101,8 +101,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
                     {loaded && upiId.trim() && name.trim() && !upiIdError && (
                         <div className="flex items-center gap-2 mt-3 ml-1">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                            <span className="text-xs text-emerald-600 font-medium">UPI configured</span>
+                            <div className="w-2 h-2 rounded-full bg-primary" />
+                            <span className="text-xs text-primary font-medium">UPI configured</span>
                         </div>
                     )}
                 </section>

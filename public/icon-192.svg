@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
-  <rect width="192" height="192" fill="#0b0e14"/>
-  <path d="M132 60l-72 72M60 60h72v72" stroke="#22c55e" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#2D6A4F"/>
+  <g transform="translate(256,256)">
+    <path d="M-20,-100 Q60,-80 80,10 Q60,50 0,80 Q-30,40 -50,-10 Q-70,-60 -20,-100Z" fill="rgba(255,255,255,0.12)" transform="rotate(-15)"/>
+    <text y="20" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="240" fill="white" font-weight="800">₹</text>
+  </g>
 </svg>

@@ -77,9 +77,9 @@ const MemberItem = memo(({ member, pairwiseBalance, transactions, groupMembers, 
                     "h-11 w-11 rounded-full flex items-center justify-center font-bold text-sm relative shrink-0",
                     isSelf ? "bg-gradient-to-br from-primary/20 to-primary/5 text-primary"
                         : isZero ? "bg-secondary text-muted-foreground"
-                            : type === 'record' ? "bg-blue-500/10 text-blue-600"
-                                : isPositive ? "bg-emerald-500/10 text-emerald-600"
-                                    : "bg-rose-500/10 text-rose-600"
+                            : type === 'record' ? "bg-amber-600/10 text-amber-700 dark:text-amber-500"
+                                : isPositive ? "bg-primary/10 text-primary"
+                                    : "bg-destructive/10 text-destructive"
                 )}>
                     {member.name.substring(0, 2).toUpperCase()}
                     {isSelf && (
@@ -94,14 +94,14 @@ const MemberItem = memo(({ member, pairwiseBalance, transactions, groupMembers, 
                         <span className={cn(
                             "text-xs font-bold tabular-nums mt-0.5",
                             isSelf ? "text-muted-foreground"
-                                : type === 'record' ? "text-blue-600"
-                                    : isPositive ? "text-emerald-600" : "text-rose-600"
+                                : type === 'record' ? "text-amber-700 dark:text-amber-500"
+                                    : isPositive ? "text-primary" : "text-destructive"
                         )}>
                             {text} {formatAmount(amount)}
                         </span>
                     )}
                     {isZero && (
-                        <span className="text-xs font-medium text-emerald-600/70 mt-0.5">
+                        <span className="text-xs font-medium text-primary/60 mt-0.5">
                             {isSelf ? "All settled ✓" : "Settled ✓"}
                         </span>
                     )}
@@ -113,9 +113,9 @@ const MemberItem = memo(({ member, pairwiseBalance, transactions, groupMembers, 
                     size="sm"
                     className={cn(
                         "h-8 px-4 text-xs font-bold transition-all active:scale-95 rounded-xl shrink-0 ml-2 shadow-none",
-                        type === 'record' ? "bg-blue-500/10 text-blue-600 hover:bg-blue-500/20"
-                            : isPositive ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
-                                : "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20"
+                        type === 'record' ? "bg-amber-600/10 text-amber-700 dark:text-amber-500 hover:bg-amber-600/20"
+                            : isPositive ? "bg-primary/10 text-primary hover:bg-primary/20"
+                                : "bg-destructive/10 text-destructive hover:bg-destructive/20"
                     )}
                     onClick={(e) => {
                         e.stopPropagation()
@@ -146,7 +146,7 @@ const ExpenseItem = memo(({ expense, group, onClick }: { expense: Expense, group
             {/* Left accent bar */}
             <div className={cn(
                 "absolute left-0 top-0 bottom-0 w-1 rounded-l-[1.75rem]",
-                isSettlement ? "bg-emerald-500" : "bg-primary/20"
+                isSettlement ? "bg-primary" : "bg-primary/20"
             )} />
             <div className="p-4 pl-5">
                 <div className="flex justify-between items-start">
@@ -162,8 +162,8 @@ const ExpenseItem = memo(({ expense, group, onClick }: { expense: Expense, group
                                         <span className={cn(
                                             "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-md",
                                             expense.settlementMethod === 'upi'
-                                                ? "bg-violet-500/10 text-violet-600"
-                                                : "bg-emerald-500/10 text-emerald-600"
+                                                ? "bg-amber-600/10 text-amber-700 dark:text-amber-500"
+                                                : "bg-primary/10 text-primary"
                                         )}>
                                             {expense.settlementMethod === 'upi' ? 'UPI' : 'Cash'}
                                         </span>
@@ -440,8 +440,8 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                 )}
 
                 {/* Floating Actions */}
-                <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-center pointer-events-none px-5">
-                    <div className="flex gap-2.5 w-full max-w-md pointer-events-auto p-2 rounded-[1.25rem] bg-background/80 backdrop-blur-xl border border-border/50 shadow-2xl shadow-black/10">
+                <div className="fixed floating-bar left-0 right-0 z-30 flex justify-center pointer-events-none px-5">
+                    <div className="flex gap-2.5 w-full max-w-md pointer-events-auto p-2 rounded-[1.25rem] bg-background/85 backdrop-blur-xl border border-border/50 shadow-xl shadow-primary/8">
                         <Button
                             onClick={() => router.push(`/group/${id}/statement`)}
                             className="h-[52px] flex-1 rounded-2xl bg-secondary text-foreground font-semibold border-0 shadow-none active:scale-[0.96] transition-transform text-[15px]"
