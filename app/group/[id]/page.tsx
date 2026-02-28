@@ -85,20 +85,30 @@ const MemberItem = memo(({ member, allTransactions, groupMembers, isSelf, selfId
     }
 
     return (
-        <Card className={cn("p-4 flex justify-between items-center active-press", isSelf && "ring-1 ring-primary/20", isSelf && "bg-primary/5")}>
+        <Card className={cn("p-4 flex justify-between items-center active-press", isSelf && "ring-1 ring-primary/20 bg-primary/5")}>
             <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center text-foreground font-bold text-base relative">
+                <div className={cn(
+                    "h-12 w-12 rounded-full flex items-center justify-center font-bold text-base relative",
+                    isSelf ? "bg-gradient-to-br from-primary/20 to-primary/5 text-primary"
+                        : isZero ? "bg-secondary/80 text-muted-foreground"
+                            : "bg-gradient-to-br from-secondary to-secondary/60 text-foreground"
+                )}>
                     {member.name.substring(0, 2).toUpperCase()}
                     {isSelf && (
                         <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[8px] font-black px-1.5 py-0.5 rounded-full leading-none shadow-sm">
                             YOU
                         </div>
                     )}
+                    {isZero && !isSelf && (
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-card flex items-center justify-center">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                        </div>
+                    )}
                     {!isZero && !isSelf && (
                         <div className={cn(
                             "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card",
                             isPositive ? "bg-emerald-500" : "bg-rose-500",
-                            type === 'record' && "bg-blue-500" // Optional: distinct color for third-party
+                            type === 'record' && "bg-blue-500"
                         )} />
                     )}
                 </div>
@@ -109,14 +119,18 @@ const MemberItem = memo(({ member, allTransactions, groupMembers, isSelf, selfId
                     )}
                     {!isZero && (
                         <span className={cn(
-                            "text-xs font-bold tabular-nums",
+                            "text-xs font-bold tabular-nums mt-0.5",
                             !isSelf ? (isPositive ? "text-emerald-500" : "text-rose-500") : "text-muted-foreground",
-                            type === 'record' && "text-blue-500" // Optional: distinct color for third-party
+                            type === 'record' && "text-blue-500"
                         )}>
                             {text} {formatAmount(amount)}
                         </span>
                     )}
-                    {isZero && <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{isSelf ? "Settled up overall" : "Settled up"}</span>}
+                    {isZero && (
+                        <span className="text-xs font-bold text-emerald-500/70 uppercase tracking-wider mt-0.5">
+                            {isSelf ? "All settled ✓" : "Settled ✓"}
+                        </span>
+                    )}
                 </div>
             </div>
 
@@ -152,39 +166,46 @@ const ExpenseItem = memo(({ expense, group, onClick }: { expense: Expense, group
 
     return (
         <Card
-            className="p-4 active-press relative group overflow-hidden cursor-pointer"
+            className="active-press relative group overflow-hidden cursor-pointer"
             onClick={() => onClick(expense.id)}
         >
-            <div className="flex justify-between items-start">
-                <div className="flex flex-col gap-1">
-                    <span className="font-semibold text-lg leading-tight text-foreground">{expense.title}</span>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                        {isSettlement ? (
-                            <>
-                                <span className="font-medium text-foreground bg-secondary px-2 py-0.5 rounded-md flex items-center gap-1">
-                                    {payer} <ArrowRight size={10} /> {receiver}
-                                </span>
-                                {expense.settlementMethod && (
-                                    <span className={cn(
-                                        "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-md",
-                                        expense.settlementMethod === 'upi'
-                                            ? "bg-violet-500/10 text-violet-600"
-                                            : "bg-emerald-500/10 text-emerald-600"
-                                    )}>
-                                        {expense.settlementMethod === 'upi' ? 'UPI' : 'Cash'}
+            {/* Left accent bar */}
+            <div className={cn(
+                "absolute left-0 top-0 bottom-0 w-1 rounded-l-[1.75rem]",
+                isSettlement ? "bg-emerald-500" : "bg-primary/20"
+            )} />
+            <div className="p-4 pl-5">
+                <div className="flex justify-between items-start">
+                    <div className="flex flex-col gap-1">
+                        <span className="font-semibold text-lg leading-tight text-foreground">{expense.title}</span>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                            {isSettlement ? (
+                                <>
+                                    <span className="font-medium text-foreground bg-secondary px-2 py-0.5 rounded-md flex items-center gap-1">
+                                        {payer} <ArrowRight size={10} /> {receiver}
                                     </span>
-                                )}
-                            </>
-                        ) : (
-                            <span className="font-medium text-foreground bg-secondary px-2 py-0.5 rounded-md">{payer} paid</span>
-                        )}
-                        <span>•</span>
-                        <span>{new Date(expense.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                                    {expense.settlementMethod && (
+                                        <span className={cn(
+                                            "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-md",
+                                            expense.settlementMethod === 'upi'
+                                                ? "bg-violet-500/10 text-violet-600"
+                                                : "bg-emerald-500/10 text-emerald-600"
+                                        )}>
+                                            {expense.settlementMethod === 'upi' ? 'UPI' : 'Cash'}
+                                        </span>
+                                    )}
+                                </>
+                            ) : (
+                                <span className="font-medium text-foreground bg-secondary px-2 py-0.5 rounded-md">{payer} paid</span>
+                            )}
+                            <span>•</span>
+                            <span>{new Date(expense.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                        </div>
                     </div>
-                </div>
-                <div className="flex flex-col items-end">
-                    <span className="font-bold text-xl tabular-nums tracking-tight">{formatAmount(expense.amount)}</span>
-                    <span className="text-muted-foreground/40 text-lg ml-1">›</span>
+                    <div className="flex flex-col items-end">
+                        <span className="font-bold text-xl tabular-nums tracking-tight">{formatAmount(expense.amount)}</span>
+                        <span className="text-muted-foreground/40 text-lg ml-1">›</span>
+                    </div>
                 </div>
             </div>
         </Card>

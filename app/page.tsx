@@ -55,26 +55,53 @@ export default function HomePage() {
           </div>
         )}
 
-        {state.groups.map(group => (
-          <Card
-            key={group.id}
-            onClick={() => router.push(`/group/${group.id}`)}
-            className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.98]"
-          >
-            <div>
-              <h3 className="font-semibold text-lg">{group.name}</h3>
-              <p className="text-sm text-muted-foreground">
-                {group.members.length} members · {group.expenses.length} expenses
-              </p>
-            </div>
-            <button
-              onClick={(e) => handleDeleteGroup(e, group.id)}
-              className="p-2 text-destructive hover:bg-destructive/10 rounded-full transition-colors"
+        {state.groups.map(group => {
+          const timeAgo = (() => {
+            const diff = Date.now() - group.lastUpdated
+            const mins = Math.floor(diff / 60000)
+            if (mins < 1) return 'Just now'
+            if (mins < 60) return `${mins}m ago`
+            const hrs = Math.floor(mins / 60)
+            if (hrs < 24) return `${hrs}h ago`
+            const days = Math.floor(hrs / 24)
+            return `${days}d ago`
+          })()
+
+          return (
+            <Card
+              key={group.id}
+              onClick={() => router.push(`/group/${group.id}`)}
+              className="p-5 cursor-pointer hover:bg-muted/50 transition-all active:scale-[0.98]"
             >
-              <Trash2 size={18} />
-            </button>
-          </Card>
-        ))}
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-lg truncate">{group.name}</h3>
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground font-medium">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
+                        <span className="text-[10px] font-bold text-primary">{group.members.length}</span>
+                      </span>
+                      members
+                    </span>
+                    <span className="text-muted-foreground/30">·</span>
+                    <span className="text-xs text-muted-foreground">{group.expenses.filter(e => e.type !== 'settlement').length} expenses</span>
+                    <span className="text-muted-foreground/30">·</span>
+                    <span className="text-xs text-muted-foreground/60">{timeAgo}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 ml-3">
+                  <button
+                    onClick={(e) => handleDeleteGroup(e, group.id)}
+                    className="p-2 text-destructive/50 hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                  <span className="text-muted-foreground/30 text-lg">›</span>
+                </div>
+              </div>
+            </Card>
+          )
+        })}
 
         <div className="fixed bottom-6 right-6 z-30">
           <Button

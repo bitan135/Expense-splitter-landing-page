@@ -175,7 +175,12 @@ export function SettlementModal({
     }
 
     const handleBack = () => {
-        setStep("form")
+        // If the form was skipped (pre-filled from member card), close the modal entirely
+        if (initialPayerId && initialReceiverId && maxAmount > 0) {
+            onClose()
+        } else {
+            setStep("form")
+        }
         setUpiError("")
     }
 
@@ -226,9 +231,12 @@ export function SettlementModal({
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">₹</span>
                                     <Input
                                         type="number"
+                                        inputMode="decimal"
+                                        min="0"
                                         autoFocus
                                         value={amount}
                                         onChange={(e) => setAmount(e.target.value)}
+                                        onKeyDown={(e) => { if (['e', 'E', '+', '-'].includes(e.key)) e.preventDefault() }}
                                         className="pl-8 text-2xl font-bold h-14"
                                         placeholder="0.00"
                                     />
