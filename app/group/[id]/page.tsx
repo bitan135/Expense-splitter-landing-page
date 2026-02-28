@@ -439,18 +439,18 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                     </section>
                 )}
 
-                {/* Bottom Action Bar */}
-                <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none">
-                    <div className="flex pointer-events-auto w-full shadow-[0_-8px_40px_rgba(5,150,105,0.15)] dark:shadow-[0_-8px_40px_rgba(16,185,129,0.1)]">
+                {/* Floating Premium Action Bar */}
+                <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none pb-[calc(1rem+env(safe-area-inset-bottom))] px-4">
+                    <div className="max-w-md mx-auto w-full pointer-events-auto flex items-center gap-2 p-2 rounded-full backdrop-blur-2xl bg-background/80 border border-border/50 shadow-[0_12px_40px_-10px_rgba(5,150,105,0.25)] dark:shadow-[0_12px_40px_-10px_rgba(16,185,129,0.15)] ring-1 ring-black/5 dark:ring-white/5">
                         <Button
                             onClick={() => router.push(`/group/${id}/statement`)}
-                            className="flex-1 rounded-none h-[calc(4.5rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-secondary/95 backdrop-blur-md text-foreground font-bold border-0 shadow-none active:bg-secondary/70 transition-all text-[15px] border-t border-border/50"
+                            className="flex-1 rounded-[2rem] h-14 bg-secondary shadow-none hover:bg-secondary/90 text-foreground font-bold transition-transform active:scale-95 text-[15px] border border-transparent dark:border-white/5"
                         >
                             <FileText size={18} className="mr-2 opacity-50" /> Statement
                         </Button>
                         <Button
                             onClick={() => router.push(`/group/${id}/expense/new`)}
-                            className="flex-1 rounded-none h-[calc(4.5rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] glass-bevel text-primary-foreground font-extrabold border-0 shadow-none active:brightness-90 transition-all text-[15px]"
+                            className="flex-1 rounded-[2rem] h-14 glass-bevel text-primary-foreground font-extrabold shadow-sm active:scale-95 transition-transform text-[15px]"
                         >
                             <Plus size={18} className="mr-1.5" /> Add Expense
                         </Button>
