@@ -27,7 +27,9 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
     }, [balances])
 
     const handleExport = useCallback(() => {
-        if (group) exportStatementPNG(group)
+        if (!group) return
+        const isDark = document.documentElement.classList.contains('dark')
+        exportStatementPNG(group, isDark)
     }, [group])
 
     if (!state.loaded) return <div>Loading...</div>
@@ -60,7 +62,7 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
                                 const isPositive = amount > 0
 
                                 return (
-                                    <Card key={memberId} className={cn("p-4 flex justify-between items-center bg-card/40 border-l-4", isZero ? "border-muted" : "")} style={{ borderLeftColor: isZero ? undefined : (isPositive ? '#34D399' : '#F87171') }}>
+                                    <Card key={memberId} className={cn("premium-card p-4 flex justify-between items-center bg-card shadow-organic", isZero ? "border-muted" : "border")} style={{ borderColor: isZero ? undefined : (isPositive ? 'rgba(5,150,105,0.2)' : 'rgba(239,68,68,0.2)') }}>
                                         <div className="flex items-center gap-3">
                                             <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center font-bold text-xs text-muted-foreground">
                                                 {member.name.substring(0, 2).toUpperCase()}
@@ -92,7 +94,7 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
                             const from = group.members.find(m => m.id === s.from)?.name
                             const to = group.members.find(m => m.id === s.to)?.name
                             return (
-                                <Card key={i} className="p-5 bg-gradient-to-r from-card to-secondary/20">
+                                <Card key={i} className="premium-card p-5 bg-card shadow-organic ring-1 ring-border/50">
                                     <div className="flex items-center gap-4">
                                         <div className="flex-1 flex items-center justify-between">
                                             <div className="flex flex-col">
@@ -126,9 +128,11 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
                     </div>
                 </section>
 
-                <Button className="w-full h-12" onClick={handleExport}>
-                    <Download className="mr-2" size={18} /> Export as Image
-                </Button>
+                <div className="pt-6">
+                    <Button className="w-full h-14 rounded-full glass-bevel text-primary-foreground font-extrabold shadow-[0_8px_30px_rgba(5,150,105,0.2)] dark:shadow-[0_8px_30px_rgba(16,185,129,0.15)] active:scale-95 transition-transform text-[16px]" onClick={handleExport}>
+                        <Download className="mr-2" size={20} /> Export Statement
+                    </Button>
+                </div>
             </main>
         </div>
     )

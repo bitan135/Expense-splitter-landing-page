@@ -2,22 +2,26 @@ import { Group } from "@/types";
 import { calculateBalances } from "./calculateBalances";
 import { optimizeSettlement } from "./optimizeSettlement";
 
-export const exportStatementPNG = (group: Group) => {
+export const exportStatementPNG = (group: Group, isDark: boolean = true) => {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // --- Configuration ---
+    // --- Configuration (2026 Nature Themes) ---
     const scale = 2; // High DPI
     const width = 800;
     const padding = 60;
-    const backgroundColor = "#0E1116"; // Deep Charcoal
-    const surfaceColor = "#161B22"; // Card Surface
-    const textColor = "#FFFFFF";
-    const mutedColor = "#8B949E";
-    const accentColor = "#22C55E"; // Green
-    const dangerColor = "#F85149"; // Red
-    const borderColor = "#21262D";
+
+    // Bioluminescent Forest (Dark) vs Sunlit Terrarium (Light)
+    const backgroundColor = isDark ? "#020617" : "#F9F6F0";
+    const surfaceColor = isDark ? "#0F172A" : "#FFFFFF";
+    const textColor = isDark ? "#F8FAFC" : "#020617";
+    const mutedColor = isDark ? "#94A3B8" : "#475569";
+    const accentColor = isDark ? "#10B981" : "#059669";
+    const dangerColor = isDark ? "#F87171" : "#EF4444";
+    const borderColor = isDark ? "#1E293B" : "#D1CFC2";
+    const shadowColor = isDark ? "rgba(16, 185, 129, 0.15)" : "rgba(5, 150, 105, 0.15)";
+
 
     // --- Data Prep ---
     const balances = calculateBalances(group);
@@ -73,10 +77,13 @@ export const exportStatementPNG = (group: Group) => {
     };
 
     const drawCard = (x: number, y: number, w: number, h: number) => {
+        // Draw 3D Organic Shadow
+        ctx.shadowColor = shadowColor;
+        ctx.shadowBlur = 35;
+        ctx.shadowOffsetY = 12;
+
         ctx.fillStyle = surfaceColor;
-        // Rounded rect manual or just rect for now
-        // Simple rounded rect:
-        const r = 16;
+        const r = 24; // Softer 2026 border radius inside PNG
         ctx.beginPath();
         ctx.moveTo(x + r, y);
         ctx.lineTo(x + w - r, y);
@@ -89,14 +96,26 @@ export const exportStatementPNG = (group: Group) => {
         ctx.quadraticCurveTo(x, y, x + r, y);
         ctx.closePath();
         ctx.fill();
+
+        // Reset shadow for text
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+
+        // Draw Inner Bevel/Border
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = borderColor;
+        ctx.stroke();
     };
 
     let y = padding;
 
     // --- 1. Header ---
     // Group Name
+    ctx.shadowColor = shadowColor;
+    ctx.shadowBlur = 40;
     ctx.fillStyle = textColor;
-    ctx.font = "bold 42px -apple-system, sans-serif";
+    ctx.font = "800 48px -apple-system, sans-serif";
     ctx.textAlign = "left";
     ctx.fillText(group.name, padding, y + 40);
 
@@ -139,8 +158,10 @@ export const exportStatementPNG = (group: Group) => {
             ctx.fillText(member.name, padding, y + 25);
 
             // Amount
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 20;
             ctx.fillStyle = color;
-            ctx.font = "bold 20px -apple-system, sans-serif";
+            ctx.font = "800 24px -apple-system, sans-serif";
             ctx.textAlign = "right";
 
             let amountText = "";
@@ -161,6 +182,9 @@ export const exportStatementPNG = (group: Group) => {
             ctx.fillStyle = isZero ? "#8B949E80" : (isPos ? "#22c55e80" : "#F8514980");
             ctx.font = "600 12px -apple-system, sans-serif";
             ctx.fillText(subText, width - padding, y + 45);
+
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = "transparent";
 
             y += 68;
         });
