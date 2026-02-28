@@ -228,15 +228,3 @@ input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
-
-/* ── GPU-accelerated scroll containers ── */
-main {
-  contain: layout style;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-}
-
-/* ── Floating bar safe area ── */
-.floating-bar {
-  bottom: calc(1.5rem + env(safe-area-inset-bottom));
-}

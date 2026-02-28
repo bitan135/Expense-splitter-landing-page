@@ -440,7 +440,7 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                 )}
 
                 {/* Floating Actions */}
-                <div className="fixed floating-bar left-0 right-0 z-30 flex justify-center pointer-events-none px-5">
+                <div className="fixed bottom-8 left-0 right-0 z-30 flex justify-center pointer-events-none px-5 pb-[env(safe-area-inset-bottom)]">
                     <div className="flex gap-2.5 w-full max-w-md pointer-events-auto p-2 rounded-[1.25rem] bg-background/85 backdrop-blur-xl border border-border/50 shadow-xl shadow-primary/8">
                         <Button
                             onClick={() => router.push(`/group/${id}/statement`)}
