@@ -52,6 +52,7 @@ export const calculateShares = (
             return distributeTotal(amount, activeSplits);
         }
 
+        case 'exact':
         case 'custom': {
             const totalCustom = Object.values(activeSplits).reduce((sum, v) => sum + v, 0);
             if (totalCustom === 0) {
@@ -63,7 +64,7 @@ export const calculateShares = (
                 throw new ValidationError(`Total shares (₹${safeFloat(totalCustom)}) must equal expense amount (₹${amount})`);
             }
 
-            // Since it's custom, we trust the inputs but ensure no weird floats or negatives
+            // Since it's custom/exact, we trust the inputs but ensure no weird floats or negatives
             const result: Record<string, number> = {};
             memberIds.forEach(id => {
                 const val = activeSplits[id] || 0;

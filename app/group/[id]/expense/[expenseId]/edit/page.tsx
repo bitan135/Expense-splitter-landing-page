@@ -146,9 +146,11 @@ export default function EditExpensePage({ params }: { params: Promise<{ id: stri
                         <input
                             type="number"
                             inputMode="decimal"
+                            min="0"
                             value={amount}
                             autoFocus
                             onChange={(e) => setAmount(e.target.value)}
+                            onKeyDown={(e) => { if (['e', 'E', '+', '-'].includes(e.key)) e.preventDefault() }}
                             className="bg-transparent text-[5rem] font-bold text-center text-foreground placeholder:text-muted-foreground/20 focus:outline-none w-full leading-none tracking-tight"
                             placeholder="0"
                         />
@@ -245,7 +247,7 @@ export default function EditExpensePage({ params }: { params: Promise<{ id: stri
                                 <div className="w-32 text-right">
                                     {splitType === "equal" ? (
                                         <span className={cn("text-lg font-mono", excludeList.includes(member.id) ? "text-muted-foreground line-through" : "text-foreground font-bold")}>
-                                            ₹{(calculateSharesDisplay[member.id] || 0).toFixed(0)}
+                                            ₹{(calculateSharesDisplay[member.id] || 0).toFixed(2)}
                                         </span>
                                     ) : (
                                         <div className="relative">
@@ -254,10 +256,13 @@ export default function EditExpensePage({ params }: { params: Promise<{ id: stri
                                             </span>
                                             <input
                                                 type="number"
-                                                className="w-full bg-secondary rounded-lg py-2 pl-2 pr-6 text-right text-lg font-bold focus:outline-none focus:ring-2 ring-foreground/20 font-mono"
+                                                inputMode="decimal"
+                                                min="0"
+                                                className="w-full bg-secondary rounded-lg py-2 pl-2 pr-6 text-right text-lg font-bold focus:outline-none focus:ring-2 ring-foreground/20 font-mono min-h-[44px]"
                                                 placeholder="0"
                                                 value={getInputValue(member.id)}
                                                 onChange={(e) => handleSplitChange(member.id, e.target.value)}
+                                                onKeyDown={(e) => { if (['e', 'E', '+', '-'].includes(e.key)) e.preventDefault() }}
                                             />
                                         </div>
                                     )}
