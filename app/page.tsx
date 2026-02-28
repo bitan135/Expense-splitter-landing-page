@@ -50,8 +50,8 @@ export default function HomePage() {
       <main className="p-4 max-w-md mx-auto space-y-5">
         {/* Hero */}
         <section className="pt-4 pb-2">
-          <h2 className="text-3xl font-bold tracking-tight">Your Groups</h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h2 className="text-4xl font-extrabold tracking-tighter">Your Groups</h2>
+          <p className="text-[15px] font-medium text-muted-foreground mt-1 tracking-tight">
             {state.loaded && state.groups.length > 0
               ? `${state.groups.length} group${state.groups.length > 1 ? 's' : ''} · Split expenses effortlessly`
               : 'Split expenses with friends, family & teams'}
@@ -82,7 +82,7 @@ export default function HomePage() {
             <Card
               key={group.id}
               onClick={() => router.push(`/group/${group.id}`)}
-              className="p-5 cursor-pointer hover:bg-muted/50 transition-all active:scale-[0.98]"
+              className="p-5 cursor-pointer hover:bg-muted/50 shadow-organic hover:shadow-glow active-press border-border/50"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
@@ -117,7 +117,7 @@ export default function HomePage() {
         <div className="fixed bottom-4 right-4 z-30 pb-[env(safe-area-inset-bottom)]">
           <Button
             size="icon"
-            className="h-14 w-14 rounded-full shadow-xl shadow-primary/25 active:scale-90 transition-transform"
+            className="h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-organic active-press"
             onClick={() => setIsModalOpen(true)}
           >
             <Plus size={24} />

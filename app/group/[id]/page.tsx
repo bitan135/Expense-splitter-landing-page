@@ -71,10 +71,10 @@ const MemberItem = memo(({ member, pairwiseBalance, transactions, groupMembers, 
     const buttonLabel = type === 'record' ? 'Record' : isPositive ? 'Collect' : 'Settle'
 
     return (
-        <Card className={cn("p-4 flex justify-between items-center active-press", isSelf && "ring-1 ring-primary/20 bg-primary/5")}>
+        <Card className={cn("p-4 flex justify-between items-center active-press shadow-organic border-border/50", isSelf && "ring-1 ring-primary/20 bg-primary/5")}>
             <div className="flex items-center gap-3.5 min-w-0 flex-1">
                 <div className={cn(
-                    "h-11 w-11 rounded-full flex items-center justify-center font-bold text-sm relative shrink-0",
+                    "h-11 w-11 rounded-full flex items-center justify-center font-bold text-sm relative shrink-0 shadow-sm",
                     isSelf ? "bg-gradient-to-br from-primary/20 to-primary/5 text-primary"
                         : isZero ? "bg-secondary text-muted-foreground"
                             : type === 'record' ? "bg-amber-600/10 text-amber-700 dark:text-amber-500"
@@ -140,7 +140,7 @@ const ExpenseItem = memo(({ expense, group, onClick }: { expense: Expense, group
 
     return (
         <Card
-            className="active-press relative group overflow-hidden cursor-pointer"
+            className="active-press relative group overflow-hidden cursor-pointer shadow-organic border-border/50 hover:shadow-glow"
             onClick={() => onClick(expense.id)}
         >
             {/* Left accent bar */}
@@ -318,10 +318,10 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
 
                 {/* Hero Total Spend */}
                 <section className="py-6">
-                    <Card className="p-6 text-center bg-gradient-to-br from-card to-secondary/50">
+                    <Card className="p-6 text-center bg-gradient-to-br from-card to-secondary/50 shadow-organic border-border/50">
                         <h2 className="text-label mb-3">Total Expenses</h2>
-                        <div className="text-hero tabular-nums">
-                            <span className="text-3xl font-normal text-muted-foreground align-top mt-2 inline-block mr-1">₹</span>
+                        <div className="text-hero tabular-nums tracking-tighter leading-none">
+                            <span className="text-3xl font-medium text-muted-foreground align-top mt-2 inline-block mr-1 tracking-normal">₹</span>
                             {totalSpend.toFixed(2)}
                         </div>
                         <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
@@ -375,7 +375,7 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                             <h3 className="text-label">Settlement Plan</h3>
                             <p className="text-[11px] text-muted-foreground/60 mt-0.5">Optimized to minimize transactions</p>
                         </div>
-                        <Card className="p-4">
+                        <Card className="p-4 shadow-organic border-border/50">
                             <div className="grid gap-3">
                                 {transactions.map((tx, i) => {
                                     const fromName = group.members.find(m => m.id === tx.from)?.name || "?"

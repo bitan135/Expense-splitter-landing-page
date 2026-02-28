@@ -2,67 +2,71 @@
 
 @layer base {
   :root {
-    /* 🌿 Nature Light — Warm ivory, forest greens, earth tones */
-    --background: #FAFAF5;
-    --foreground: #1A1C1A;
+    /* 🌿 2026 Nature Light — Alabaster Sand, Forest Canopy */
+    --background: #F7F7F2;
+    --foreground: #141A14;
 
-    --card: #F0EDE6;
-    --card-foreground: #1A1C1A;
+    --card: #FFFFFF;
+    --card-foreground: #141A14;
 
-    --popover: #FAFAF5;
-    --popover-foreground: #1A1C1A;
+    --popover: #FFFFFF;
+    --popover-foreground: #141A14;
 
-    --primary: #2D6A4F;
-    --primary-foreground: #FAFAF5;
+    --primary: #215A36;
+    --primary-foreground: #FFFFFF;
 
-    --secondary: #EDE8DB;
-    --secondary-foreground: #1A1C1A;
+    --secondary: #E8E4D9;
+    --secondary-foreground: #141A14;
 
-    --muted: #E8E3D6;
-    --muted-foreground: #6B7B6B;
+    --muted: #E2DFD3;
+    --muted-foreground: #5B6B5B;
 
-    --accent: #D4A574;
-    --accent-foreground: #1A1C1A;
+    --accent: #D97706;
+    /* Golden Amber */
+    --accent-foreground: #FFFFFF;
 
-    --destructive: #C44536;
-    --destructive-foreground: #FAFAF5;
+    --destructive: #D94A38;
+    /* Autumn Rust */
+    --destructive-foreground: #FFFFFF;
 
-    --border: #DDD8CC;
-    --input: #E4DFD4;
-    --ring: #2D6A4F;
+    --border: #D1CFC2;
+    --input: #E8E4D9;
+    --ring: #215A36;
 
     --radius: 1.5rem;
   }
 
   .dark {
-    /* 🌲 Nature Dark — Deep forest, sage, earth night */
-    --background: #0A0E0A;
-    --foreground: #E8E6E0;
+    /* 🌲 2026 Nature Dark — Midnight Moss, Bioluminescent Sage */
+    --background: #080B09;
+    --foreground: #E0E4E0;
 
-    --card: #141A14;
-    --card-foreground: #E8E6E0;
+    --card: #111812;
+    --card-foreground: #E0E4E0;
 
-    --popover: #141A14;
-    --popover-foreground: #E8E6E0;
+    --popover: #111812;
+    --popover-foreground: #E0E4E0;
 
-    --primary: #52B788;
-    --primary-foreground: #0A0E0A;
+    --primary: #4ADE80;
+    --primary-foreground: #080B09;
 
-    --secondary: #1A261A;
-    --secondary-foreground: #E8E6E0;
+    --secondary: #1E2920;
+    --secondary-foreground: #E0E4E0;
 
-    --muted: #1E2A1E;
-    --muted-foreground: #8FA88F;
+    --muted: #1A221A;
+    --muted-foreground: #8B9D8B;
 
-    --accent: #D4A574;
-    --accent-foreground: #0A0E0A;
+    --accent: #FBBF24;
+    /* Warm Glow */
+    --accent-foreground: #080B09;
 
-    --destructive: #E07A5F;
-    --destructive-foreground: #0A0E0A;
+    --destructive: #F87171;
+    /* Sunset Coral */
+    --destructive-foreground: #080B09;
 
-    --border: #243024;
-    --input: #1E2A1E;
-    --ring: #52B788;
+    --border: #212C21;
+    --input: #1E2920;
+    --ring: #4ADE80;
   }
 }
 
@@ -121,38 +125,43 @@ body {
   background: transparent;
 }
 
+/* ── Organic Shadows (2026 Trend) ── */
+.shadow-organic {
+  box-shadow:
+    0 2px 8px -2px rgba(33, 90, 54, 0.04),
+    0 12px 32px -4px rgba(33, 90, 54, 0.08);
+}
+
+.dark .shadow-organic {
+  box-shadow:
+    0 4px 24px -4px rgba(0, 0, 0, 0.4);
+}
+
+.shadow-glow {
+  box-shadow: 0 0 40px -8px rgba(33, 90, 54, 0.25);
+}
+
+.dark .shadow-glow {
+  box-shadow: 0 0 40px -8px rgba(74, 222, 128, 0.2);
+}
+
 /* ── Premium Card ── */
 .premium-card {
   background-color: var(--card);
   border-radius: 1.75rem;
-  transition: transform 80ms ease-out, box-shadow 120ms ease-out;
-  will-change: transform;
+  transition: transform 300ms cubic-bezier(0.25, 1, 0.5, 1), box-shadow 300ms cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform, box-shadow;
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
-}
-
-:root:not(.dark) .premium-card {
-  box-shadow:
-    0 1px 3px rgba(45, 106, 79, 0.04),
-    0 4px 16px -2px rgba(45, 106, 79, 0.06);
-  border: 1px solid rgba(45, 106, 79, 0.06);
-}
-
-.dark .premium-card {
-  border: 1px solid rgba(82, 183, 136, 0.08);
+  border: 1px solid var(--border);
 }
 
 /* ── Glass Header ── */
 .glass-header {
-  background: rgba(250, 250, 245, 0.88);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(45, 106, 79, 0.06);
-}
-
-.dark .glass-header {
-  background: rgba(10, 14, 10, 0.8);
-  border-bottom: 1px solid rgba(82, 183, 136, 0.08);
+  background: color-mix(in srgb, var(--background) 85%, transparent);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
 }
 
 /* ── Typography ── */

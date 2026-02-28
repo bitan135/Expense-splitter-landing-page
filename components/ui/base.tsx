@@ -13,7 +13,7 @@ export interface ButtonProps
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ({ className, variant = "default", size = "default", isLoading, children, ...props }, ref) => {
         const variants = {
-            default: "bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:opacity-90",
+            default: "bg-primary text-primary-foreground shadow-organic hover:shadow-glow hover:opacity-95",
             destructive: "bg-destructive/10 text-destructive hover:bg-destructive/20",
             outline: "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
             secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
@@ -65,7 +65,7 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
             <input
                 type={type}
                 className={cn(
-                    "flex h-14 w-full rounded-2xl bg-secondary px-5 py-3 text-lg ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all",
+                    "flex h-14 w-full rounded-2xl bg-secondary px-5 py-3 text-lg border-2 border-transparent file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:border-primary focus-visible:bg-background focus-visible:shadow-organic disabled:cursor-not-allowed disabled:opacity-50 transition-all",
                     className
                 )}
                 ref={ref}

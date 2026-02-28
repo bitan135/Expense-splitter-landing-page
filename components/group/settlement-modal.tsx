@@ -237,7 +237,7 @@ export function SettlementModal({
                                         value={amount}
                                         onChange={(e) => setAmount(e.target.value)}
                                         onKeyDown={(e) => { if (['e', 'E', '+', '-'].includes(e.key)) e.preventDefault() }}
-                                        className="pl-8 text-2xl font-bold h-14"
+                                        className="pl-8 text-3xl font-extrabold tracking-tighter h-14"
                                         placeholder="0.00"
                                     />
                                     {maxAmount > 0 && (
@@ -257,7 +257,7 @@ export function SettlementModal({
                             </div>
 
                             <Button
-                                className="w-full h-12 text-lg font-bold shadow-lg"
+                                className="w-full h-14 text-[17px] font-bold shadow-organic active-press rounded-xl"
                                 onClick={handleProceed}
                                 disabled={!formValid}
                             >
@@ -295,7 +295,7 @@ export function SettlementModal({
                                     <>
                                         <button
                                             onClick={handleCash}
-                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary shadow-organic hover:shadow-glow active-press border border-border/50"
                                         >
                                             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                                                 <Banknote size={24} className="text-primary" />
@@ -304,7 +304,7 @@ export function SettlementModal({
                                         </button>
                                         <button
                                             onClick={() => recordSettlement('upi')}
-                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary shadow-organic hover:shadow-glow active-press border border-border/50"
                                         >
                                             <div className="w-12 h-12 rounded-full bg-amber-600/10 flex items-center justify-center">
                                                 <Smartphone size={24} className="text-amber-700 dark:text-amber-500" />
@@ -317,7 +317,7 @@ export function SettlementModal({
                                     <>
                                         <button
                                             onClick={handleCash}
-                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary shadow-organic hover:shadow-glow active-press border border-border/50"
                                         >
                                             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                                                 <Banknote size={24} className="text-primary" />
@@ -326,7 +326,7 @@ export function SettlementModal({
                                         </button>
                                         <button
                                             onClick={handleUpi}
-                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary shadow-organic hover:shadow-glow active-press border border-border/50"
                                         >
                                             <div className="w-12 h-12 rounded-full bg-amber-600/10 flex items-center justify-center">
                                                 <QrCode size={24} className="text-amber-700 dark:text-amber-500" />
@@ -339,7 +339,7 @@ export function SettlementModal({
                                     <>
                                         <button
                                             onClick={handleCash}
-                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary shadow-organic hover:shadow-glow active-press border border-border/50"
                                         >
                                             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                                                 <Banknote size={24} className="text-primary" />
@@ -348,7 +348,7 @@ export function SettlementModal({
                                         </button>
                                         <button
                                             onClick={() => receiverHasUpi ? setStep("upi-app-select") : recordSettlement('upi')}
-                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary shadow-organic hover:shadow-glow active-press border border-border/50"
                                         >
                                             <div className="w-12 h-12 rounded-full bg-amber-600/10 flex items-center justify-center">
                                                 <Smartphone size={24} className="text-amber-700 dark:text-amber-500" />
