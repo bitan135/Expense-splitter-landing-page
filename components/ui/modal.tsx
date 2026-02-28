@@ -16,6 +16,11 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
     const [show, setShow] = React.useState(isOpen)
     const [animate, setAnimate] = React.useState(false)
 
+    // Swipe-to-dismiss physics state
+    const [dragY, setDragY] = React.useState(0)
+    const isDragging = React.useRef(false)
+    const startY = React.useRef(0)
+
     React.useEffect(() => {
         if (isOpen) {
             setShow(true)
@@ -32,8 +37,40 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
 
     if (!show) return null
 
+    // Touch physics handlers
+    const handlePointerDown = (e: React.PointerEvent) => {
+        isDragging.current = true
+        startY.current = e.clientY
+    }
+
+    const handlePointerMove = (e: React.PointerEvent) => {
+        if (!isDragging.current) return
+        const delta = e.clientY - startY.current
+        // Only allow dragging downwards
+        if (delta > 0) {
+            setDragY(delta)
+        }
+    }
+
+    const handlePointerUp = () => {
+        if (!isDragging.current) return
+        isDragging.current = false
+        // Threshold for dismissal: drag down by 150px
+        if (dragY > 150) {
+            onClose()
+        } else {
+            // Spring back to top
+            setDragY(0)
+        }
+    }
+
+    // Dynamic style for dragging
+    const modalStyle = dragY > 0 ? { transform: `translateY(${dragY}px)`, transition: 'none' } : undefined
+    // Combine base animation class. If we are touching, disable CSS transition to lock to finger.
+    const animationClass = dragY > 0 ? '' : (animate ? "translate-y-0 opacity-100" : "translate-y-full opacity-0");
+
     return (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center">
             {/* Backdrop */}
             <div
                 className={cn(
@@ -44,9 +81,15 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
             />
             {/* Bottom Sheet */}
             <div
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+                onPointerLeave={handlePointerUp}
+                style={modalStyle}
                 className={cn(
-                    "relative w-full max-w-lg transform rounded-t-3xl bg-background px-6 pb-8 pt-3 shadow-2xl transition-all duration-200 ease-out max-h-[90vh] overflow-y-auto",
-                    animate ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
+                    "relative w-full max-w-lg transform rounded-t-3xl bg-background px-6 pb-8 pt-3 shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] max-h-[90vh] overflow-y-auto",
+                    animationClass,
                     className
                 )}
             >

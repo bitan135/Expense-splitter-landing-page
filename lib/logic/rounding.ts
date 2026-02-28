@@ -4,6 +4,7 @@
  */
 export const safeFloat = (num: number): number => {
     if (!isFinite(num)) return 0;
+    // Scale to integers to circumvent IEEE 754 floating point drift during intermediate calculations
     return Math.round((num + Number.EPSILON) * 100) / 100;
 };
 
@@ -32,9 +33,13 @@ export const distributeTotal = (
     // First pass: distribute based on ratios floor
     ids.forEach((id) => {
         const ratio = weights[id] / totalWeight;
-        const share = Math.floor(total * ratio * 100) / 100;
+        // Calculate raw share, then scale to int to drop floating remainders, convert back
+        const rawShare = total * ratio;
+        const share = Math.floor(rawShare * 100) / 100;
+
         result[id] = share;
-        distributedSum = safeFloat(distributedSum + share);
+        // Use exact integer arithmetic for the running sum to prevent drift
+        distributedSum = Math.round((distributedSum * 100) + (share * 100)) / 100;
     });
 
     // Second pass: distribute remainder cents
@@ -46,7 +51,8 @@ export const distributeTotal = (
     const sortedIds = [...ids].sort((a, b) => weights[b] - weights[a]);
 
     let i = 0;
-    while (remainder > 0.005 && i < sortedIds.length) {
+    // Avoid floating point comparison drift by scaling to integers (0.005 -> 0.5 -> 1)
+    while (Math.round(remainder * 100) > 0 && i < sortedIds.length) {
         result[sortedIds[i]] = safeFloat(result[sortedIds[i]] + 0.01);
         remainder = safeFloat(remainder - 0.01);
         i = (i + 1) % sortedIds.length; // cycle if needed (rare)

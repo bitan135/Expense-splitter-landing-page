@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useReducer } from "react";
+import { get, set, del } from "idb-keyval";
 import { Group, Expense } from "@/types";
 
 // State Shape
@@ -143,47 +144,50 @@ const StoreContext = createContext<{
 export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
     const [state, dispatch] = useReducer(reducer, initialState);
 
-    // Load from LocalStorage
+    // Load from IndexedDB (Async, Non-Blocking)
     useEffect(() => {
-        const saved = localStorage.getItem("expense-splitter-state");
-        if (saved) {
+        const loadState = async () => {
             try {
-                const parsed = JSON.parse(saved);
-                // Structural validation: ensure data has expected shape
-                if (
-                    parsed &&
-                    typeof parsed === 'object' &&
-                    Array.isArray(parsed.groups) &&
-                    parsed.groups.every((g: unknown) =>
-                        g && typeof g === 'object' &&
-                        typeof (g as Record<string, unknown>).id === 'string' &&
-                        Array.isArray((g as Record<string, unknown>).members) &&
-                        Array.isArray((g as Record<string, unknown>).expenses)
-                    )
-                ) {
-                    dispatch({ type: "LOAD_STATE", payload: parsed });
+                const saved = await get("expense-splitter-state");
+                if (saved) {
+                    // Structural validation: ensure data has expected shape
+                    if (
+                        typeof saved === 'object' &&
+                        Array.isArray(saved.groups) &&
+                        saved.groups.every((g: unknown) =>
+                            g && typeof g === 'object' &&
+                            typeof (g as Record<string, unknown>).id === 'string' &&
+                            Array.isArray((g as Record<string, unknown>).members) &&
+                            Array.isArray((g as Record<string, unknown>).expenses)
+                        )
+                    ) {
+                        dispatch({ type: "LOAD_STATE", payload: saved as AppState });
+                    } else {
+                        console.warn("Corrupt IndexedDB state, resetting.");
+                        await del("expense-splitter-state");
+                        dispatch({ type: "LOAD_STATE", payload: initialState });
+                    }
                 } else {
-                    console.warn("Corrupt localStorage state, resetting.");
-                    localStorage.removeItem("expense-splitter-state");
+                    // Just trigger loaded if empty
                     dispatch({ type: "LOAD_STATE", payload: initialState });
                 }
             } catch (e) {
-                console.error("Failed to load state", e);
-                localStorage.removeItem("expense-splitter-state");
+                console.error("Failed to load state from IndexedDB", e);
                 dispatch({ type: "LOAD_STATE", payload: initialState });
             }
-        } else {
-            // Just trigger loaded
-            dispatch({ type: "LOAD_STATE", payload: initialState });
-        }
+        };
+        loadState();
     }, []);
 
-    // Save to LocalStorage
+    // Save to IndexedDB (Async, Non-Blocking)
     useEffect(() => {
         if (state.loaded) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { loaded, ...persistedState } = state;
-            localStorage.setItem("expense-splitter-state", JSON.stringify(persistedState));
+            // Write to IndexedDB without blocking the UI main thread
+            set("expense-splitter-state", persistedState).catch(e => {
+                console.error("Failed to save state to IndexedDB", e);
+            });
         }
     }, [state]);
 

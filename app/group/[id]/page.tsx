@@ -412,9 +412,20 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                                 />
                             ))
                         ) : (
-                            <div className="text-center py-12 text-muted-foreground bg-secondary/50 rounded-3xl border border-dashed border-border/50">
-                                <p>No expenses yet.</p>
-                                <p className="text-sm mt-1 opacity-70">Tap <span className="font-semibold">+ Add Expense</span> to get started</p>
+                            <div className="flex flex-col items-center justify-center py-16 px-6 text-center bg-secondary/30 rounded-[2rem] border border-border/50 shadow-inner">
+                                <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mb-4 shadow-sm ring-1 ring-border/50">
+                                    <span className="text-2xl">💸</span>
+                                </div>
+                                <h3 className="text-lg font-bold mb-1">Split the Bill</h3>
+                                <p className="text-muted-foreground/80 text-sm mb-6 max-w-[200px]">
+                                    Add your first expense to see who owes who.
+                                </p>
+                                <Button
+                                    onClick={() => router.push(`/group/${id}/add-expense`)}
+                                    className="h-12 px-6 rounded-full bg-primary/10 text-primary hover:bg-primary/20 shadow-none font-bold active:scale-95 transition-transform border border-primary/20"
+                                >
+                                    <Plus size={18} className="mr-2" /> Add Expense
+                                </Button>
                             </div>
                         )}
                     </div>

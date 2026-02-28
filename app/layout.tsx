@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { ViewTransitions } from 'next-view-transitions';
 import { Geist } from "next/font/google";
-import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { StoreProvider } from "@/lib/store";
+import { ToastProvider } from "@/components/ui/toast";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -52,21 +53,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geist.variable} antialiased`}>
-        {/* iOS FastClick Activator Hack: Forces instant :active evaluation */}
-        <script dangerouslySetInnerHTML={{ __html: 'document.addEventListener("touchstart", function() {}, {passive: true});' }} />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ErrorBoundary>
-            <StoreProvider>{children}</StoreProvider>
-          </ErrorBoundary>
-        </ThemeProvider>
-      </body>
-    </html>
+    <ViewTransitions>
+      <html lang="en" suppressHydrationWarning>
+        <body className={`${geist.variable} antialiased`}>
+          {/* iOS FastClick Activator Hack: Forces instant :active evaluation */}
+          <script dangerouslySetInnerHTML={{ __html: 'document.addEventListener("touchstart", function() {}, {passive: true});' }} />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <StoreProvider>
+              <ErrorBoundary>
+                <ToastProvider />
+                <div className="mx-auto min-h-screen bg-background text-foreground safe-area-padding max-w-md shadow-2xl safe-area-shadow overflow-hidden relative pb-16">
+                  {children}
+                </div>
+              </ErrorBoundary>
+            </StoreProvider>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ViewTransitions>
   );
 }
