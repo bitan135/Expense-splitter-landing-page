@@ -291,7 +291,7 @@ export function SettlementModal({
 
                             <div className="grid grid-cols-2 gap-3">
                                 {mode === 'record' ? (
-                                    /* Record mode: purely logging a 3rd party transaction */
+                                    /* Record mode: logging a 3rd party transaction */
                                     <>
                                         <button
                                             onClick={handleCash}
@@ -312,8 +312,8 @@ export function SettlementModal({
                                             <span className="font-semibold text-sm">Record UPI</span>
                                         </button>
                                     </>
-                                ) : (
-                                    /* Settle/Collect mode: actual payment flow */
+                                ) : mode === 'collect' ? (
+                                    /* Collect mode: receiving money */
                                     <>
                                         <button
                                             onClick={handleCash}
@@ -324,42 +324,37 @@ export function SettlementModal({
                                             </div>
                                             <span className="font-semibold text-sm">Cash</span>
                                         </button>
-
-                                        {mode === 'collect' ? (
-                                            /* Collect mode: show QR Code */
-                                            <button
-                                                onClick={handleUpi}
-                                                className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
-                                            >
-                                                <div className="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center">
-                                                    <QrCode size={24} className="text-violet-600" />
-                                                </div>
-                                                <span className="font-semibold text-sm">Show QR</span>
-                                            </button>
-                                        ) : (
-                                            /* Settle mode: show Pay UPI (if receiver has upiId) */
-                                            receiverHasUpi ? (
-                                                <button
-                                                    onClick={() => setStep("upi-app-select")}
-                                                    className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
-                                                >
-                                                    <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                                        <Smartphone size={24} className="text-blue-600" />
-                                                    </div>
-                                                    <span className="font-semibold text-sm">Pay UPI</span>
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={handleUpi}
-                                                    className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
-                                                >
-                                                    <div className="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center">
-                                                        <QrCode size={24} className="text-violet-600" />
-                                                    </div>
-                                                    <span className="font-semibold text-sm">UPI QR</span>
-                                                </button>
-                                            )
-                                        )}
+                                        <button
+                                            onClick={handleUpi}
+                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                        >
+                                            <div className="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center">
+                                                <QrCode size={24} className="text-violet-600" />
+                                            </div>
+                                            <span className="font-semibold text-sm">Show QR</span>
+                                        </button>
+                                    </>
+                                ) : (
+                                    /* Settle mode: paying money */
+                                    <>
+                                        <button
+                                            onClick={handleCash}
+                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                        >
+                                            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                                <Banknote size={24} className="text-emerald-600" />
+                                            </div>
+                                            <span className="font-semibold text-sm">Cash</span>
+                                        </button>
+                                        <button
+                                            onClick={() => receiverHasUpi ? setStep("upi-app-select") : recordSettlement('upi')}
+                                            className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-secondary hover:bg-secondary/80 transition-all duration-150 active:scale-[0.97]"
+                                        >
+                                            <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                                <Smartphone size={24} className="text-blue-600" />
+                                            </div>
+                                            <span className="font-semibold text-sm">Pay UPI</span>
+                                        </button>
                                     </>
                                 )}
                             </div>

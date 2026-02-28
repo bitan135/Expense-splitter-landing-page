@@ -14,43 +14,72 @@ import { Group, Expense, Member } from "@/types"
 
 import { optimizeSettlement, Transaction } from "@/lib/logic/optimizeSettlement"
 import { SettlementModal } from "@/components/group/settlement-modal"
-
-const MemberItem = memo(({ member, pairwiseBalance, isSelf, selfId, selfBalance, onSettle }: {
-    member: Member, pairwiseBalance: number, isSelf: boolean, selfId: string | undefined, selfBalance: number,
-    onSettle: (type: 'pay' | 'receive', payerId: string, receiverId: string, amount: number) => void
+const MemberItem = memo(({ member, pairwiseBalance, transactions, groupMembers, isSelf, selfId, selfBalance, onSettle }: {
+    member: Member, pairwiseBalance: number, transactions: Transaction[], groupMembers: Member[],
+    isSelf: boolean, selfId: string | undefined, selfBalance: number,
+    onSettle: (type: 'pay' | 'receive' | 'record', payerId: string, receiverId: string, amount: number) => void
 }) => {
-    // pairwiseBalance: positive = they owe self, negative = self owes them
-    const isPositive = isSelf ? selfBalance > 0 : pairwiseBalance > 0
-    const isZero = isSelf ? Math.abs(selfBalance) < 0.01 : Math.abs(pairwiseBalance) < 0.01
-    const amount = isSelf ? Math.abs(selfBalance) : Math.abs(pairwiseBalance)
+    // Check pairwise first (intuitive self ↔ member relationship)
+    const hasPairwise = Math.abs(pairwiseBalance) >= 0.01
+
+    // If pairwise is zero, check for outstanding optimized third-party transactions
+    const thirdPartyTx = !isSelf && !hasPairwise
+        ? transactions.find(t => t.from === member.id || t.to === member.id)
+        : undefined
+
+    const isPositive = isSelf ? selfBalance > 0
+        : hasPairwise ? pairwiseBalance > 0
+            : thirdPartyTx ? thirdPartyTx.to === member.id // they receive = positive for them
+                : false
+    const isZero = isSelf ? Math.abs(selfBalance) < 0.01 : !hasPairwise && !thirdPartyTx
+    const amount = isSelf ? Math.abs(selfBalance)
+        : hasPairwise ? Math.abs(pairwiseBalance)
+            : thirdPartyTx ? thirdPartyTx.amount : 0
 
     let text = ""
-    let type: 'pay' | 'receive' = 'pay'
+    let type: 'pay' | 'receive' | 'record' = 'pay'
+    let actionPayerId = ""
+    let actionReceiverId = ""
 
     if (isSelf) {
         text = isPositive ? "Gets back overall" : "Owes overall"
-    } else if (!isZero) {
-        if (isPositive) {
+    } else if (hasPairwise) {
+        if (pairwiseBalance > 0) {
             text = "Owes you"
             type = 'receive'
+            actionPayerId = member.id
+            actionReceiverId = selfId || ""
         } else {
             text = "You owe"
             type = 'pay'
+            actionPayerId = selfId || ""
+            actionReceiverId = member.id
+        }
+    } else if (thirdPartyTx) {
+        type = 'record'
+        actionPayerId = thirdPartyTx.from
+        actionReceiverId = thirdPartyTx.to
+        const otherId = thirdPartyTx.from === member.id ? thirdPartyTx.to : thirdPartyTx.from
+        const otherName = groupMembers.find(m => m.id === otherId)?.name || "?"
+        if (thirdPartyTx.from === member.id) {
+            text = `Owes ${otherName}`
+        } else {
+            text = `Gets from ${otherName}`
         }
     }
 
-    const actionPayerId = isSelf ? "" : (type === 'pay' && selfId ? selfId : member.id)
-    const actionReceiverId = isSelf ? "" : (type === 'pay' ? member.id : (selfId || ""))
+    const buttonLabel = type === 'record' ? 'Record' : isPositive ? 'Collect' : 'Settle'
 
     return (
         <Card className={cn("p-4 flex justify-between items-center active-press", isSelf && "ring-1 ring-primary/20 bg-primary/5")}>
-            <div className="flex items-center gap-4 min-w-0 flex-1">
+            <div className="flex items-center gap-3.5 min-w-0 flex-1">
                 <div className={cn(
                     "h-11 w-11 rounded-full flex items-center justify-center font-bold text-sm relative shrink-0",
                     isSelf ? "bg-gradient-to-br from-primary/20 to-primary/5 text-primary"
                         : isZero ? "bg-secondary text-muted-foreground"
-                            : isPositive ? "bg-emerald-500/10 text-emerald-600"
-                                : "bg-rose-500/10 text-rose-600"
+                            : type === 'record' ? "bg-blue-500/10 text-blue-600"
+                                : isPositive ? "bg-emerald-500/10 text-emerald-600"
+                                    : "bg-rose-500/10 text-rose-600"
                 )}>
                     {member.name.substring(0, 2).toUpperCase()}
                     {isSelf && (
@@ -65,7 +94,8 @@ const MemberItem = memo(({ member, pairwiseBalance, isSelf, selfId, selfBalance,
                         <span className={cn(
                             "text-xs font-bold tabular-nums mt-0.5",
                             isSelf ? "text-muted-foreground"
-                                : isPositive ? "text-emerald-600" : "text-rose-600"
+                                : type === 'record' ? "text-blue-600"
+                                    : isPositive ? "text-emerald-600" : "text-rose-600"
                         )}>
                             {text} {formatAmount(amount)}
                         </span>
@@ -83,16 +113,16 @@ const MemberItem = memo(({ member, pairwiseBalance, isSelf, selfId, selfBalance,
                     size="sm"
                     className={cn(
                         "h-8 px-4 text-xs font-bold transition-all active:scale-95 rounded-xl shrink-0 ml-2 shadow-none",
-                        isPositive
-                            ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
-                            : "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20"
+                        type === 'record' ? "bg-blue-500/10 text-blue-600 hover:bg-blue-500/20"
+                            : isPositive ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
+                                : "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20"
                     )}
                     onClick={(e) => {
                         e.stopPropagation()
                         onSettle(type, actionPayerId, actionReceiverId, amount)
                     }}
                 >
-                    {isPositive ? "Collect" : "Settle"}
+                    {buttonLabel}
                 </Button>
             )}
         </Card>
@@ -238,8 +268,8 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
         })
     }, [dispatch])
 
-    const openSettlement = useCallback((type: 'pay' | 'receive', payerId: string, receiverId: string, amount: number) => {
-        if (!selfId) {
+    const openSettlement = useCallback((type: 'pay' | 'receive' | 'record', payerId: string, receiverId: string, amount: number) => {
+        if (!selfId && type !== 'record') {
             setSelfPickerOpen(true)
             return
         }
@@ -247,7 +277,7 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
             payerId: payerId,
             receiverId: receiverId,
             maxAmount: amount,
-            mode: type === 'pay' ? 'settle' : 'collect'
+            mode: type === 'record' ? 'record' : (type === 'pay' ? 'settle' : 'collect')
         })
         setSettlementModalOpen(true)
     }, [selfId])
@@ -322,6 +352,8 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                                 key={member.id}
                                 member={member}
                                 pairwiseBalance={pairwise[member.id] || 0}
+                                transactions={transactions}
+                                groupMembers={group.members}
                                 isSelf={member.id === selfId}
                                 selfId={selfId}
                                 selfBalance={balances[member.id] || 0}
