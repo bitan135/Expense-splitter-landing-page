@@ -4,7 +4,7 @@ import { use, useMemo, useCallback } from "react"
 import { useStore } from "@/lib/store"
 import { Header } from "@/components/layout/header"
 import { Button, Card } from "@/components/ui/base"
-import { ArrowLeft, Download } from "lucide-react"
+import { ArrowLeft, Download, Share } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { calculateBalances } from "@/lib/logic/calculateBalances"
 import { optimizeSettlement } from "@/lib/logic/optimizeSettlement"
@@ -31,6 +31,13 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
         const isDark = document.documentElement.classList.contains('dark')
         const { exportStatementPNG } = await import('@/lib/logic/exportStatementPNG')
         exportStatementPNG(group, isDark)
+    }, [group])
+
+    const handleShare = useCallback(async () => {
+        if (!group) return
+        const isDark = document.documentElement.classList.contains('dark')
+        const { shareStatementPNG } = await import('@/lib/logic/exportStatementPNG')
+        await shareStatementPNG(group, isDark)
     }, [group])
 
     if (!state.loaded) return <div>Loading...</div>
@@ -129,9 +136,12 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
                     </div>
                 </section>
 
-                <div className="pt-6">
-                    <Button className="w-full h-14 rounded-full glass-bevel text-primary-foreground font-extrabold shadow-[0_8px_30px_rgba(5,150,105,0.2)] dark:shadow-[0_8px_30px_rgba(16,185,129,0.15)] active:scale-95 transition-transform text-[16px]" onClick={handleExport}>
-                        <Download className="mr-2" size={20} /> Export Statement
+                <div className="pt-6 flex flex-col gap-3">
+                    <Button className="w-full h-14 rounded-full glass-bevel text-primary-foreground font-extrabold shadow-[0_8px_30px_rgba(5,150,105,0.2)] dark:shadow-[0_8px_30px_rgba(16,185,129,0.15)] active:scale-95 transition-transform text-[16px]" onClick={handleShare}>
+                        <Share className="mr-2" size={20} /> Share Statement
+                    </Button>
+                    <Button variant="secondary" className="w-full h-14 rounded-full text-secondary-foreground font-bold active:scale-95 transition-transform text-[16px] border border-border/50" onClick={handleExport}>
+                        <Download className="mr-2" size={20} /> Save to Device
                     </Button>
                 </div>
             </main>
