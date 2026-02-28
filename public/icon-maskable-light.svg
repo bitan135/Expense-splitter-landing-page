@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#FAFAF5"/>
-  <g transform="translate(256,256)">
-    <path d="M-20,-100 Q60,-80 80,10 Q60,50 0,80 Q-30,40 -50,-10 Q-70,-60 -20,-100Z" fill="rgba(45,106,79,0.08)" transform="rotate(-15)"/>
-    <text y="20" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="240" fill="#2D6A4F" font-weight="800">₹</text>
-  </g>
-</svg>

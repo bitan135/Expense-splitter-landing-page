@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#2D6A4F"/>
-  <g transform="translate(256,256)">
-    <!-- Leaf shape -->
-    <path d="M-20,-100 Q60,-80 80,10 Q60,50 0,80 Q-30,40 -50,-10 Q-70,-60 -20,-100Z" fill="rgba(255,255,255,0.15)" transform="rotate(-15)"/>
-    <!-- ₹ symbol -->
-    <text y="20" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="240" fill="white" font-weight="800">₹</text>
-  </g>
-</svg>
