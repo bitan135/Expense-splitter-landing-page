@@ -42,23 +42,23 @@ export default function ExpenseDetailPage({ params }: { params: Promise<{ id: st
             <main className="p-5 max-w-md mx-auto space-y-6">
 
                 {/* Receipt Card */}
-                <div className="bg-card text-card-foreground rounded-3xl p-6 shadow-2xl space-y-6 relative overflow-hidden">
+                <div className="bg-card text-card-foreground rounded-3xl p-6 shadow-xl space-y-5 relative overflow-hidden border border-border/30">
                     {/* Decorative Top */}
-                    <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 to-emerald-300 opacity-50" />
+                    <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary/30 via-primary/50 to-primary/30" />
 
-                    <div className="text-center space-y-1 pt-4">
-                        <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Amount</div>
-                        <div className="text-5xl font-bold tabular-nums tracking-tight">₹{expense.amount.toFixed(2)}</div>
+                    <div className="text-center space-y-1 pt-3">
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em]">Amount</div>
+                        <div className="text-5xl font-extrabold tabular-nums tracking-tight">₹{expense.amount.toFixed(2)}</div>
                     </div>
 
                     <div className="flex flex-col items-center gap-2">
-                        <div className="text-xl font-semibold text-center">{expense.title}</div>
-                        <div className="text-xs text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
+                        <div className="text-lg font-bold text-center">{expense.title}</div>
+                        <div className="text-xs text-muted-foreground bg-secondary px-3 py-1.5 rounded-full font-medium">
                             Paid by <span className="font-bold text-foreground">{payer}</span>
                         </div>
                         {expense.type === 'settlement' && expense.settlementMethod && (
                             <div className={cn(
-                                "text-xs font-bold uppercase px-3 py-1 rounded-full mt-1",
+                                "text-[10px] font-bold uppercase px-3 py-1 rounded-full",
                                 expense.settlementMethod === 'upi'
                                     ? "bg-violet-500/10 text-violet-600"
                                     : "bg-emerald-500/10 text-emerald-600"
@@ -68,28 +68,28 @@ export default function ExpenseDetailPage({ params }: { params: Promise<{ id: st
                         )}
                     </div>
 
-                    <div className="h-px bg-border/50 border-dashed border-b w-full" />
+                    <div className="h-px bg-border/40 w-full" />
 
                     {/* Split Breakdown */}
                     <div className="space-y-3">
-                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">Split Breakdown</div>
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.12em] mb-3">Split Breakdown</div>
                         {Object.entries(expense.splits).map(([memberId, splitAmount]) => {
                             if (splitAmount <= 0) return null
                             const memberName = group.members.find(m => m.id === memberId)?.name || "Unknown"
                             return (
                                 <div key={memberId} className="flex justify-between items-center text-sm">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-2 w-2 rounded-full bg-primary/30" />
+                                        <div className="h-2 w-2 rounded-full bg-primary/20" />
                                         <span className="font-medium">{memberName}</span>
                                     </div>
-                                    <span className="font-mono font-semibold opacity-80">₹{splitAmount.toFixed(2)}</span>
+                                    <span className="font-bold tabular-nums">₹{splitAmount.toFixed(2)}</span>
                                 </div>
                             )
                         })}
                     </div>
 
                     {/* Date */}
-                    <div className="text-center text-[10px] text-muted-foreground pt-4 opacity-50 font-mono">
+                    <div className="text-center text-[10px] text-muted-foreground/40 pt-2 font-mono">
                         {new Date(expense.createdAt).toLocaleString()}
                     </div>
                 </div>

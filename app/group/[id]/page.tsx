@@ -6,153 +6,72 @@ import { useStore } from "@/lib/store"
 import { Header } from "@/components/layout/header"
 import { Button, Card, Input } from "@/components/ui/base"
 import { Modal } from "@/components/ui/modal"
-import { ArrowLeft, Plus, Users, Receipt, FileText, Trash2, Settings, ArrowRight, Contact } from "lucide-react"
+import { ArrowLeft, Plus, Users, Receipt, FileText, Trash2, ArrowRight, Contact } from "lucide-react"
 import { calculateBalances } from "@/lib/logic/calculateBalances"
+import { calculatePairwiseBalances } from "@/lib/logic/calculatePairwiseBalances"
 import { cn, formatAmount } from "@/lib/utils"
 import { Group, Expense, Member } from "@/types"
 
 import { optimizeSettlement, Transaction } from "@/lib/logic/optimizeSettlement"
+import { SettlementModal } from "@/components/group/settlement-modal"
 
-const MemberItem = memo(({ member, allTransactions, groupMembers, isSelf, selfId, selfBalance, onSettle }: {
-    member: Member, allTransactions: Transaction[], groupMembers: Member[], isSelf: boolean, selfId: string | undefined, selfBalance: number,
-    onSettle: (type: 'pay' | 'receive' | 'record', payerId: string, receiverId: string, amount: number) => void
+const MemberItem = memo(({ member, pairwiseBalance, isSelf, selfId, selfBalance, onSettle }: {
+    member: Member, pairwiseBalance: number, isSelf: boolean, selfId: string | undefined, selfBalance: number,
+    onSettle: (type: 'pay' | 'receive', payerId: string, receiverId: string, amount: number) => void
 }) => {
-    // Collect ALL transactions involving this member
-    const memberTxs = allTransactions.filter(t => t.from === member.id || t.to === member.id)
+    // pairwiseBalance: positive = they owe self, negative = self owes them
+    const isPositive = isSelf ? selfBalance > 0 : pairwiseBalance > 0
+    const isZero = isSelf ? Math.abs(selfBalance) < 0.01 : Math.abs(pairwiseBalance) < 0.01
+    const amount = isSelf ? Math.abs(selfBalance) : Math.abs(pairwiseBalance)
 
-    // Separate: self-involved vs third-party
-    const selfTx = selfId ? memberTxs.find(t =>
-        (t.from === selfId && t.to === member.id) ||
-        (t.from === member.id && t.to === selfId)
-    ) : undefined
-    const otherTxs = memberTxs.filter(t => t !== selfTx)
-
-    // Primary display values
-    let isPositive = false
-    let isZero = true
-    let amount = 0
-    let type: 'pay' | 'receive' | 'record' = 'pay'
     let text = ""
-    let actionPayerId = ""
-    let actionReceiverId = ""
+    let type: 'pay' | 'receive' = 'pay'
 
     if (isSelf) {
-        isPositive = selfBalance > 0
-        isZero = Math.abs(selfBalance) < 0.01
-        amount = Math.abs(selfBalance)
         text = isPositive ? "Gets back overall" : "Owes overall"
-    } else if (selfTx) {
-        // Primary: direct transaction with self
-        isZero = false
-        amount = selfTx.amount
-        actionPayerId = selfTx.from
-        actionReceiverId = selfTx.to
-
-        if (selfTx.from === member.id && selfTx.to === selfId) {
-            isPositive = true
-            type = 'receive'
+    } else if (!isZero) {
+        if (isPositive) {
             text = "Owes you"
+            type = 'receive'
         } else {
-            isPositive = false
-            type = 'pay'
             text = "You owe"
-        }
-    } else if (otherTxs.length > 0) {
-        // No self-involved tx — show first third-party debt
-        const tx = otherTxs[0]
-        isZero = false
-        amount = tx.amount
-        type = 'record'
-        actionPayerId = tx.from
-        actionReceiverId = tx.to
-
-        const otherId = tx.from === member.id ? tx.to : tx.from
-        const otherName = groupMembers.find(m => m.id === otherId)?.name || "Unknown"
-        if (tx.from === member.id) {
-            isPositive = false
-            text = `Owes ${otherName}`
-        } else {
-            isPositive = true
-            text = `Gets back from ${otherName}`
+            type = 'pay'
         }
     }
 
-    // Build secondary debt lines (additional transactions beyond primary)
-    const secondaryDebts: { text: string; amount: number; isPositive: boolean }[] = []
-    const remainingTxs = selfTx ? otherTxs : otherTxs.slice(1)
-    remainingTxs.forEach(tx => {
-        const otherId = tx.from === member.id ? tx.to : tx.from
-        const otherName = groupMembers.find(m => m.id === otherId)?.name || "?"
-        if (tx.from === member.id) {
-            secondaryDebts.push({ text: `→ ${otherName}`, amount: tx.amount, isPositive: false })
-        } else {
-            secondaryDebts.push({ text: `← ${otherName}`, amount: tx.amount, isPositive: true })
-        }
-    })
-
-    const getButton = () => {
-        if (isSelf) return null
-        if (type === 'record') return "Record"
-        return isPositive ? "Collect" : "Settle"
-    }
+    const actionPayerId = isSelf ? "" : (type === 'pay' && selfId ? selfId : member.id)
+    const actionReceiverId = isSelf ? "" : (type === 'pay' ? member.id : (selfId || ""))
 
     return (
         <Card className={cn("p-4 flex justify-between items-center active-press", isSelf && "ring-1 ring-primary/20 bg-primary/5")}>
             <div className="flex items-center gap-4 min-w-0 flex-1">
                 <div className={cn(
-                    "h-12 w-12 rounded-full flex items-center justify-center font-bold text-base relative shrink-0",
+                    "h-11 w-11 rounded-full flex items-center justify-center font-bold text-sm relative shrink-0",
                     isSelf ? "bg-gradient-to-br from-primary/20 to-primary/5 text-primary"
-                        : isZero ? "bg-secondary/80 text-muted-foreground"
-                            : "bg-gradient-to-br from-secondary to-secondary/60 text-foreground"
+                        : isZero ? "bg-secondary text-muted-foreground"
+                            : isPositive ? "bg-emerald-500/10 text-emerald-600"
+                                : "bg-rose-500/10 text-rose-600"
                 )}>
                     {member.name.substring(0, 2).toUpperCase()}
                     {isSelf && (
-                        <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[8px] font-black px-1.5 py-0.5 rounded-full leading-none shadow-sm">
+                        <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[7px] font-black px-1.5 py-0.5 rounded-full leading-none shadow-sm">
                             YOU
                         </div>
                     )}
-                    {isZero && !isSelf && (
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-card flex items-center justify-center">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                        </div>
-                    )}
-                    {!isZero && !isSelf && (
-                        <div className={cn(
-                            "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card",
-                            isPositive ? "bg-emerald-500" : "bg-rose-500",
-                            type === 'record' && "bg-blue-500"
-                        )} />
-                    )}
                 </div>
                 <div className="flex flex-col min-w-0">
-                    <span className="font-semibold text-base truncate">{member.name}</span>
-                    {member.upiId && (
-                        <span className="text-[11px] text-muted-foreground/70 tabular-nums truncate">{member.upiId}</span>
-                    )}
+                    <span className="font-semibold text-[15px] truncate leading-tight">{member.name}</span>
                     {!isZero && (
                         <span className={cn(
                             "text-xs font-bold tabular-nums mt-0.5",
-                            !isSelf ? (isPositive ? "text-emerald-500" : "text-rose-500") : "text-muted-foreground",
-                            type === 'record' && "text-blue-500"
+                            isSelf ? "text-muted-foreground"
+                                : isPositive ? "text-emerald-600" : "text-rose-600"
                         )}>
                             {text} {formatAmount(amount)}
                         </span>
                     )}
-                    {/* Show secondary debts */}
-                    {secondaryDebts.length > 0 && (
-                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
-                            {secondaryDebts.map((d, i) => (
-                                <span key={i} className={cn(
-                                    "text-[10px] font-semibold tabular-nums",
-                                    d.isPositive ? "text-emerald-500/60" : "text-rose-500/60"
-                                )}>
-                                    {d.text} {formatAmount(d.amount)}
-                                </span>
-                            ))}
-                        </div>
-                    )}
                     {isZero && (
-                        <span className="text-xs font-bold text-emerald-500/70 uppercase tracking-wider mt-0.5">
+                        <span className="text-xs font-medium text-emerald-600/70 mt-0.5">
                             {isSelf ? "All settled ✓" : "Settled ✓"}
                         </span>
                     )}
@@ -162,18 +81,18 @@ const MemberItem = memo(({ member, allTransactions, groupMembers, isSelf, selfId
             {!isZero && !isSelf && (
                 <Button
                     size="sm"
-                    variant={isPositive ? "secondary" : "destructive"}
                     className={cn(
-                        "h-9 px-4 text-xs font-bold shadow-sm transition-all active:scale-95 rounded-xl shrink-0 ml-2",
-                        isPositive ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20",
-                        type === 'record' && "bg-blue-500/10 text-blue-600 hover:bg-blue-500/20"
+                        "h-8 px-4 text-xs font-bold transition-all active:scale-95 rounded-xl shrink-0 ml-2 shadow-none",
+                        isPositive
+                            ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
+                            : "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20"
                     )}
                     onClick={(e) => {
                         e.stopPropagation()
                         onSettle(type, actionPayerId, actionReceiverId, amount)
                     }}
                 >
-                    {getButton()}
+                    {isPositive ? "Collect" : "Settle"}
                 </Button>
             )}
         </Card>
@@ -237,10 +156,6 @@ const ExpenseItem = memo(({ expense, group, onClick }: { expense: Expense, group
     )
 })
 ExpenseItem.displayName = "ExpenseItem"
-
-import { SettlementModal } from "@/components/group/settlement-modal"
-
-// ... imports remain the same
 
 export default function GroupPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params)
@@ -323,9 +238,8 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
         })
     }, [dispatch])
 
-    const openSettlement = useCallback((type: 'pay' | 'receive' | 'record', payerId: string, receiverId: string, amount: number) => {
+    const openSettlement = useCallback((type: 'pay' | 'receive', payerId: string, receiverId: string, amount: number) => {
         if (!selfId) {
-            // Auto-prompt: open the self picker instead of silently blocking
             setSelfPickerOpen(true)
             return
         }
@@ -333,7 +247,7 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
             payerId: payerId,
             receiverId: receiverId,
             maxAmount: amount,
-            mode: type === 'record' ? 'record' : (type === 'pay' ? 'settle' : 'collect')
+            mode: type === 'pay' ? 'settle' : 'collect'
         })
         setSettlementModalOpen(true)
     }, [selfId])
@@ -348,6 +262,12 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
 
     const expensesOnly = useMemo(() => sortedExpenses.filter(e => e.type !== 'settlement'), [sortedExpenses])
     const settlementsOnly = useMemo(() => sortedExpenses.filter(e => e.type === 'settlement'), [sortedExpenses])
+
+    // Pairwise net: positive = they owe self, negative = self owes them
+    const pairwise = useMemo(() => {
+        if (!group || !selfId) return {}
+        return calculatePairwiseBalances(group, selfId)
+    }, [group, selfId])
 
     if (!state.loaded) return <div className="p-10 text-center text-muted-foreground">Loading...</div>
     if (!group) return <div className="p-10 text-center text-muted-foreground">Group not found</div>
@@ -388,21 +308,20 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                     </Card>
                 </section>
 
-                {/* Member List */}
-                <section className="space-y-4">
+                {/* Members */}
+                <section className="space-y-3">
                     <div className="flex items-center justify-between px-1">
                         <h3 className="text-label">Members</h3>
                         <Button size="sm" variant="ghost" className="h-8 text-xs hover:bg-secondary" onClick={() => setIsAddMemberOpen(true)}>
                             <Plus size={14} className="mr-1" /> Add
                         </Button>
                     </div>
-                    <div className="grid gap-3">
+                    <div className="grid gap-2.5">
                         {group.members.map(member => (
                             <MemberItem
                                 key={member.id}
                                 member={member}
-                                allTransactions={transactions}
-                                groupMembers={group.members}
+                                pairwiseBalance={pairwise[member.id] || 0}
                                 isSelf={member.id === selfId}
                                 selfId={selfId}
                                 selfBalance={balances[member.id] || 0}
@@ -416,6 +335,34 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                         )}
                     </div>
                 </section>
+
+                {/* Settlement Plan */}
+                {transactions.length > 0 && (
+                    <section className="space-y-3">
+                        <div className="px-1">
+                            <h3 className="text-label">Settlement Plan</h3>
+                            <p className="text-[11px] text-muted-foreground/60 mt-0.5">Optimized to minimize transactions</p>
+                        </div>
+                        <Card className="p-4">
+                            <div className="grid gap-3">
+                                {transactions.map((tx, i) => {
+                                    const fromName = group.members.find(m => m.id === tx.from)?.name || "?"
+                                    const toName = group.members.find(m => m.id === tx.to)?.name || "?"
+                                    return (
+                                        <div key={i} className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="font-semibold text-foreground">{fromName}</span>
+                                                <ArrowRight size={12} className="text-muted-foreground/40" />
+                                                <span className="font-semibold text-foreground">{toName}</span>
+                                            </div>
+                                            <span className="font-bold text-sm tabular-nums">{formatAmount(tx.amount)}</span>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </Card>
+                    </section>
+                )}
 
                 {/* Expenses List */}
                 <section className="space-y-4">
