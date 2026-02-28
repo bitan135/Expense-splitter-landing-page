@@ -17,78 +17,90 @@ const MemberItem = memo(({ member, allTransactions, groupMembers, isSelf, selfId
     member: Member, allTransactions: Transaction[], groupMembers: Member[], isSelf: boolean, selfId: string | undefined, selfBalance: number,
     onSettle: (type: 'pay' | 'receive' | 'record', payerId: string, receiverId: string, amount: number) => void
 }) => {
+    // Collect ALL transactions involving this member
+    const memberTxs = allTransactions.filter(t => t.from === member.id || t.to === member.id)
+
+    // Separate: self-involved vs third-party
+    const selfTx = selfId ? memberTxs.find(t =>
+        (t.from === selfId && t.to === member.id) ||
+        (t.from === member.id && t.to === selfId)
+    ) : undefined
+    const otherTxs = memberTxs.filter(t => t !== selfTx)
+
+    // Primary display values
     let isPositive = false
     let isZero = true
     let amount = 0
     let type: 'pay' | 'receive' | 'record' = 'pay'
-    let text = "Settled up"
+    let text = ""
     let actionPayerId = ""
     let actionReceiverId = ""
 
     if (isSelf) {
-        // Self card shows overall global balance
         isPositive = selfBalance > 0
         isZero = Math.abs(selfBalance) < 0.01
         amount = Math.abs(selfBalance)
         text = isPositive ? "Gets back overall" : "Owes overall"
-    } else {
-        // Find best transaction involving this member
-        // Priority 1: Direct transaction with Self
-        let tx = selfId ? allTransactions.find(t =>
-            (t.from === selfId && t.to === member.id) ||
-            (t.from === member.id && t.to === selfId)
-        ) : undefined
+    } else if (selfTx) {
+        // Primary: direct transaction with self
+        isZero = false
+        amount = selfTx.amount
+        actionPayerId = selfTx.from
+        actionReceiverId = selfTx.to
 
-        // Priority 2: Any transaction involving this member (Third-Party Debt)
-        if (!tx) {
-            tx = allTransactions.find(t => t.from === member.id || t.to === member.id)
+        if (selfTx.from === member.id && selfTx.to === selfId) {
+            isPositive = true
+            type = 'receive'
+            text = "Owes you"
+        } else {
+            isPositive = false
+            type = 'pay'
+            text = "You owe"
         }
+    } else if (otherTxs.length > 0) {
+        // No self-involved tx — show first third-party debt
+        const tx = otherTxs[0]
+        isZero = false
+        amount = tx.amount
+        type = 'record'
+        actionPayerId = tx.from
+        actionReceiverId = tx.to
 
-        if (tx) {
-            isZero = false
-            amount = tx.amount
-            actionPayerId = tx.from
-            actionReceiverId = tx.to
-
-            if (tx.from === member.id && tx.to === selfId) {
-                // They owe YOU
-                isPositive = true
-                type = 'receive'
-                text = "Owes you"
-            } else if (tx.from === selfId && tx.to === member.id) {
-                // YOU owe them
-                isPositive = false
-                type = 'pay'
-                text = "You owe"
-            } else {
-                // Third party debt
-                type = 'record'
-                const otherId = tx.from === member.id ? tx.to : tx.from
-                const otherName = groupMembers.find(m => m.id === otherId)?.name || "Unknown"
-                if (tx.from === member.id) {
-                    // They owe a third party
-                    isPositive = false
-                    text = `Owes ${otherName}`
-                } else {
-                    // They get back from a third party
-                    isPositive = true
-                    text = `Gets back from ${otherName}`
-                }
-            }
+        const otherId = tx.from === member.id ? tx.to : tx.from
+        const otherName = groupMembers.find(m => m.id === otherId)?.name || "Unknown"
+        if (tx.from === member.id) {
+            isPositive = false
+            text = `Owes ${otherName}`
+        } else {
+            isPositive = true
+            text = `Gets back from ${otherName}`
         }
     }
 
+    // Build secondary debt lines (additional transactions beyond primary)
+    const secondaryDebts: { text: string; amount: number; isPositive: boolean }[] = []
+    const remainingTxs = selfTx ? otherTxs : otherTxs.slice(1)
+    remainingTxs.forEach(tx => {
+        const otherId = tx.from === member.id ? tx.to : tx.from
+        const otherName = groupMembers.find(m => m.id === otherId)?.name || "?"
+        if (tx.from === member.id) {
+            secondaryDebts.push({ text: `→ ${otherName}`, amount: tx.amount, isPositive: false })
+        } else {
+            secondaryDebts.push({ text: `← ${otherName}`, amount: tx.amount, isPositive: true })
+        }
+    })
+
     const getButton = () => {
-        if (isSelf) return null // No buttons on self card
+        if (isSelf) return null
         if (type === 'record') return "Record"
         return isPositive ? "Collect" : "Settle"
     }
 
     return (
         <Card className={cn("p-4 flex justify-between items-center active-press", isSelf && "ring-1 ring-primary/20 bg-primary/5")}>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 min-w-0 flex-1">
                 <div className={cn(
-                    "h-12 w-12 rounded-full flex items-center justify-center font-bold text-base relative",
+                    "h-12 w-12 rounded-full flex items-center justify-center font-bold text-base relative shrink-0",
                     isSelf ? "bg-gradient-to-br from-primary/20 to-primary/5 text-primary"
                         : isZero ? "bg-secondary/80 text-muted-foreground"
                             : "bg-gradient-to-br from-secondary to-secondary/60 text-foreground"
@@ -112,10 +124,10 @@ const MemberItem = memo(({ member, allTransactions, groupMembers, isSelf, selfId
                         )} />
                     )}
                 </div>
-                <div className="flex flex-col">
-                    <span className="font-semibold text-base">{member.name}</span>
+                <div className="flex flex-col min-w-0">
+                    <span className="font-semibold text-base truncate">{member.name}</span>
                     {member.upiId && (
-                        <span className="text-[11px] text-muted-foreground/70 tabular-nums">{member.upiId}</span>
+                        <span className="text-[11px] text-muted-foreground/70 tabular-nums truncate">{member.upiId}</span>
                     )}
                     {!isZero && (
                         <span className={cn(
@@ -125,6 +137,19 @@ const MemberItem = memo(({ member, allTransactions, groupMembers, isSelf, selfId
                         )}>
                             {text} {formatAmount(amount)}
                         </span>
+                    )}
+                    {/* Show secondary debts */}
+                    {secondaryDebts.length > 0 && (
+                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
+                            {secondaryDebts.map((d, i) => (
+                                <span key={i} className={cn(
+                                    "text-[10px] font-semibold tabular-nums",
+                                    d.isPositive ? "text-emerald-500/60" : "text-rose-500/60"
+                                )}>
+                                    {d.text} {formatAmount(d.amount)}
+                                </span>
+                            ))}
+                        </div>
                     )}
                     {isZero && (
                         <span className="text-xs font-bold text-emerald-500/70 uppercase tracking-wider mt-0.5">
@@ -139,7 +164,7 @@ const MemberItem = memo(({ member, allTransactions, groupMembers, isSelf, selfId
                     size="sm"
                     variant={isPositive ? "secondary" : "destructive"}
                     className={cn(
-                        "h-9 px-4 text-xs font-bold shadow-sm transition-all active:scale-95 rounded-xl",
+                        "h-9 px-4 text-xs font-bold shadow-sm transition-all active:scale-95 rounded-xl shrink-0 ml-2",
                         isPositive ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20",
                         type === 'record' && "bg-blue-500/10 text-blue-600 hover:bg-blue-500/20"
                     )}
@@ -299,7 +324,11 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
     }, [dispatch])
 
     const openSettlement = useCallback((type: 'pay' | 'receive' | 'record', payerId: string, receiverId: string, amount: number) => {
-        if (!selfId) return
+        if (!selfId) {
+            // Auto-prompt: open the self picker instead of silently blocking
+            setSelfPickerOpen(true)
+            return
+        }
         setSettlementContext({
             payerId: payerId,
             receiverId: receiverId,
@@ -338,12 +367,25 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
             <main className="p-5 max-w-md mx-auto space-y-8">
 
                 {/* Hero Total Spend */}
-                <section className="text-center py-6">
-                    <h2 className="text-label mb-2">Total Expenses</h2>
-                    <div className="text-hero tabular-nums">
-                        <span className="text-3xl font-normal text-muted-foreground align-top mt-2 inline-block mr-1">₹</span>
-                        {totalSpend.toFixed(2)}
-                    </div>
+                <section className="py-6">
+                    <Card className="p-6 text-center bg-gradient-to-br from-card to-secondary/50">
+                        <h2 className="text-label mb-3">Total Expenses</h2>
+                        <div className="text-hero tabular-nums">
+                            <span className="text-3xl font-normal text-muted-foreground align-top mt-2 inline-block mr-1">₹</span>
+                            {totalSpend.toFixed(2)}
+                        </div>
+                        <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1.5">
+                                <Users size={12} className="opacity-50" />
+                                {group.members.length} members
+                            </span>
+                            <span className="opacity-30">·</span>
+                            <span className="flex items-center gap-1.5">
+                                <Receipt size={12} className="opacity-50" />
+                                {expensesOnly.length} expenses
+                            </span>
+                        </div>
+                    </Card>
                 </section>
 
                 {/* Member List */}
@@ -419,19 +461,21 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                 )}
 
                 {/* Floating Actions */}
-                <div className="fixed bottom-8 left-0 right-0 z-30 flex justify-center gap-4 pointer-events-none px-6">
-                    <Button
-                        onClick={() => router.push(`/group/${id}/statement`)}
-                        className="h-14 flex-1 rounded-2xl shadow-xl bg-secondary text-foreground font-semibold pointer-events-auto border border-white/5 active:scale-95 transition-transform"
-                    >
-                        <FileText size={20} className="mr-2 opacity-50" /> Statement
-                    </Button>
-                    <Button
-                        onClick={() => router.push(`/group/${id}/expense/new`)}
-                        className="h-14 flex-[1.5] rounded-2xl shadow-xl bg-primary text-primary-foreground font-bold pointer-events-auto active:scale-95 transition-transform"
-                    >
-                        <Plus size={22} className="mr-2" /> Add Expense
-                    </Button>
+                <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-center pointer-events-none px-5">
+                    <div className="flex gap-3 w-full max-w-md pointer-events-auto p-2 rounded-[1.25rem] bg-background/80 backdrop-blur-xl border border-border/50 shadow-2xl shadow-black/10">
+                        <Button
+                            onClick={() => router.push(`/group/${id}/statement`)}
+                            className="h-12 flex-1 rounded-xl bg-secondary text-foreground font-semibold border-0 shadow-none active:scale-95 transition-transform"
+                        >
+                            <FileText size={18} className="mr-2 opacity-50" /> Statement
+                        </Button>
+                        <Button
+                            onClick={() => router.push(`/group/${id}/expense/new`)}
+                            className="h-12 flex-[1.5] rounded-xl bg-primary text-primary-foreground font-bold border-0 shadow-none active:scale-95 transition-transform"
+                        >
+                            <Plus size={20} className="mr-2" /> Add Expense
+                        </Button>
+                    </div>
                 </div>
 
             </main>

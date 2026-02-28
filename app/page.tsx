@@ -35,7 +35,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       <Header
-        title="Your Groups"
+        title=""
         rightAction={
           <button
             onClick={() => setIsSettingsOpen(true)}
@@ -47,11 +47,22 @@ export default function HomePage() {
         }
       />
 
-      <main className="p-4 max-w-md mx-auto space-y-4">
+      <main className="p-4 max-w-md mx-auto space-y-5">
+        {/* Hero */}
+        <section className="pt-4 pb-2">
+          <h2 className="text-3xl font-bold tracking-tight">Your Groups</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {state.loaded && state.groups.length > 0
+              ? `${state.groups.length} group${state.groups.length > 1 ? 's' : ''} · Split expenses effortlessly`
+              : 'Split expenses with friends, family & teams'}
+          </p>
+        </section>
+
         {state.loaded && state.groups.length === 0 && (
-          <div className="text-center py-10 text-muted-foreground">
-            <p>No groups yet.</p>
-            <p className="text-sm">Create one to start splitting!</p>
+          <div className="text-center py-16 px-6">
+            <div className="text-5xl mb-4">💸</div>
+            <p className="text-lg font-semibold text-foreground">No groups yet</p>
+            <p className="text-sm text-muted-foreground mt-1">Create one to start splitting expenses</p>
           </div>
         )}
 
