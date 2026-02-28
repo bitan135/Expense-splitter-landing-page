@@ -24,43 +24,52 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Settings">
-            <div className="space-y-6 pt-1">
+            <div className="space-y-8 pt-2 pb-4">
 
                 {/* Theme */}
                 <section>
-                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 ml-1">
+                    <h3 className="text-sm font-extrabold text-foreground tracking-tight mb-1 ml-1">
                         Appearance
                     </h3>
-                    <div className="flex gap-2">
+                    <p className="text-xs text-muted-foreground/80 mb-4 ml-1">
+                        Customize the visual frequency of the application.
+                    </p>
+                    <div className="flex p-1 bg-secondary/50 rounded-[24px] border border-border/50 ring-1 ring-black/5 dark:ring-white/5 relative">
                         {([
                             { key: 'system', icon: Monitor, label: 'Auto' },
                             { key: 'light', icon: Sun, label: 'Light' },
                             { key: 'dark', icon: Moon, label: 'Dark' },
-                        ] as const).map(({ key, icon: Icon, label }) => (
-                            <button
-                                key={key}
-                                onClick={() => setTheme(key)}
-                                className={`flex-1 flex items-center justify-center gap-1.5 h-11 rounded-2xl font-semibold text-sm transition-all duration-150 ${activeTheme === key
-                                    ? "bg-primary text-primary-foreground shadow-lg"
-                                    : "bg-secondary text-muted-foreground hover:bg-secondary/80"
-                                    }`}
-                            >
-                                <Icon size={14} />
-                                {label}
-                            </button>
-                        ))}
+                        ] as const).map(({ key, icon: Icon, label }) => {
+                            const isActive = activeTheme === key;
+                            return (
+                                <button
+                                    key={key}
+                                    onClick={() => setTheme(key)}
+                                    className={`active-press flex-1 flex flex-col items-center justify-center gap-1.5 h-16 rounded-[20px] font-semibold text-xs transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative z-10 ${isActive
+                                        ? "text-primary-foreground shadow-lg shadow-black/10 dark:shadow-black/20"
+                                        : "text-muted-foreground hover:bg-foreground/5 bg-transparent"
+                                        }`}
+                                >
+                                    {isActive && (
+                                        <div className="absolute inset-0 bg-primary rounded-[20px] -z-10 shadow-organic" />
+                                    )}
+                                    <Icon size={18} className={isActive ? "opacity-100" : "opacity-60"} />
+                                    {label}
+                                </button>
+                            );
+                        })}
                     </div>
                 </section>
 
-                <div className="border-t border-border/50" />
+                <div className="border-t border-border/40" />
 
                 {/* UPI Details */}
                 <section>
-                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 ml-1">
-                        UPI Details
+                    <h3 className="text-sm font-extrabold text-foreground tracking-tight mb-1 ml-1">
+                        Financial Profile
                     </h3>
-                    <p className="text-xs text-muted-foreground mb-4 ml-1">
-                        Used for generating QR codes during settlement.
+                    <p className="text-xs text-muted-foreground/80 mb-5 ml-1 leading-relaxed">
+                        Your UPI ID is used to instantly generate QR codes for friends when they settle balances with you.
                     </p>
                     {loaded && (
                         <div className="space-y-3">

@@ -58,7 +58,7 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
 
                 {/* Net Balances */}
                 <section>
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">Net Balances</h3>
+                    <h3 className="text-sm font-extrabold text-foreground/80 tracking-tight uppercase mb-3 px-1">Net Balances</h3>
                     <div className="grid grid-cols-1 gap-2">
                         {Object.entries(balances)
                             .sort(([, a], [, b]) => b - a) // Most positive first
@@ -96,7 +96,7 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
 
                 {/* Settlement Plan */}
                 <section className="pb-20">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">Settlement Plan</h3>
+                    <h3 className="text-sm font-extrabold text-foreground/80 tracking-tight uppercase mb-3 px-1">Settlement Plan</h3>
                     <div className="space-y-2">
                         {settlements.map((s, i) => {
                             const from = group.members.find(m => m.id === s.from)?.name

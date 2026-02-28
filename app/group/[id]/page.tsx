@@ -71,7 +71,11 @@ const MemberItem = memo(({ member, pairwiseBalance, transactions, groupMembers, 
     const buttonLabel = type === 'record' ? 'Record' : isPositive ? 'Collect' : 'Settle'
 
     return (
-        <Card className={cn("p-4 flex justify-between items-center active-press shadow-organic border-border/50", isSelf && "ring-1 ring-primary/20 bg-primary/5")}>
+        <Card className={cn(
+            "p-4 flex justify-between items-center active-press shadow-organic border-border/50 transition-colors",
+            isSelf && "ring-[1.5px] ring-primary bg-primary/[0.03]",
+            !isZero && !isSelf && (isPositive ? "bg-primary/[0.02]" : "bg-destructive/[0.02]")
+        )}>
             <div className="flex items-center gap-3.5 min-w-0 flex-1">
                 <div className={cn(
                     "h-11 w-11 rounded-full flex items-center justify-center font-bold text-sm relative shrink-0 shadow-sm",

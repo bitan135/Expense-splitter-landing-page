@@ -142,13 +142,13 @@ export default function AddExpensePage({ params }: { params: Promise<{ id: strin
                             placeholder="0"
                         />
                     </div>
-                    <label className="text-label mt-4">Enter Amount</label>
+                    <label className="text-label mt-4 tracking-tight">Enter Amount</label>
                 </div>
 
                 <div className="space-y-8">
                     {/* Description */}
                     <div className="space-y-3">
-                        <label className="text-label ml-1">Title</label>
+                        <label className="text-label ml-1 tracking-tight text-foreground/80">Title</label>
                         <Input
                             placeholder="Dinner, Taxi, etc."
                             value={title}
