@@ -4,7 +4,7 @@ import { use, useMemo, useCallback } from "react"
 import { useStore } from "@/lib/store"
 import { Header } from "@/components/layout/header"
 import { Button, Card } from "@/components/ui/base"
-import { ArrowLeft, Download, Share } from "lucide-react"
+import { ArrowLeft, ArrowRight, Download, Share } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { calculateBalances } from "@/lib/logic/calculateBalances"
 import { optimizeSettlement } from "@/lib/logic/optimizeSettlement"
@@ -99,30 +99,37 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
                     <h3 className="text-sm font-extrabold text-foreground/80 tracking-tight uppercase mb-3 px-1">Settlement Plan</h3>
                     <div className="space-y-2">
                         {settlements.map((s, i) => {
-                            const from = group.members.find(m => m.id === s.from)?.name
-                            const to = group.members.find(m => m.id === s.to)?.name
+                            const from = group.members.find(m => m.id === s.from)?.name || "Unknown"
+                            const to = group.members.find(m => m.id === s.to)?.name || "Unknown"
                             return (
-                                <Card key={i} className="premium-card p-5 bg-card shadow-organic ring-1 ring-border/50">
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex-1 flex items-center justify-between">
-                                            <div className="flex flex-col">
-                                                <span className="font-medium text-lg text-foreground">{from}</span>
-                                                <span className="text-xs text-muted-foreground uppercase tracking-wide">Must pay</span>
-                                            </div>
-
-                                            <div className="flex flex-col items-center px-4">
-                                                <span className="text-xs text-muted-foreground mb-1">→</span>
-                                                <div className="h-px w-12 bg-border"></div>
-                                            </div>
-
-                                            <div className="flex flex-col items-end">
-                                                <span className="font-medium text-lg text-foreground">{to}</span>
-                                                <span className="text-xs text-muted-foreground uppercase tracking-wide">Receive</span>
-                                            </div>
+                                <Card key={i} className="premium-card p-4 bg-card shadow-organic border-border/50">
+                                    <div className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-x-3 gap-y-1">
+                                        {/* Row 1: Names and Amount */}
+                                        <div className="text-[15px] font-bold text-foreground truncate text-right">
+                                            {from}
+                                        </div>
+                                        <div className="flex items-center justify-center text-muted-foreground/40 px-1">
+                                            <ArrowRight size={14} />
+                                        </div>
+                                        <div className="text-[15px] font-bold text-foreground truncate">
+                                            {to}
+                                        </div>
+                                        <div className="text-right pl-3 border-l border-border/30">
+                                            <span className="font-extrabold text-primary tabular-nums text-lg">
+                                                {formatAmount(s.amount)}
+                                            </span>
                                         </div>
 
-                                        <div className="pl-4 border-l border-border/50">
-                                            <span className="font-bold text-lg text-primary tabular-nums">{formatAmount(s.amount)}</span>
+                                        {/* Row 2: Sub-labels */}
+                                        <div className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground text-right">
+                                            Sends
+                                        </div>
+                                        <div></div>
+                                        <div className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                                            Receives
+                                        </div>
+                                        <div className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/50 text-right">
+                                            Cash / UPI
                                         </div>
                                     </div>
                                 </Card>

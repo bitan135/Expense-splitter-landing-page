@@ -101,7 +101,10 @@ body {
   /* Native mobile feel */
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  overscroll-behavior-y: none;
+  overscroll-behavior-y: contain;
+  /* Allows iOS bounce while preventing pull-to-refresh */
+  scrollbar-width: none;
+  /* Hide scrollbar for Firefox */
   padding-bottom: env(safe-area-inset-bottom);
   -webkit-overflow-scrolling: touch;
 }
@@ -136,9 +139,12 @@ a {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* ── Scrollbar ── */
+/* ── Scrollbar Purge ── */
 ::-webkit-scrollbar {
+  display: none;
+  /* Safari and Chrome */
   width: 0;
+  height: 0;
   background: transparent;
 }
 
