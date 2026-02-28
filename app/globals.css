@@ -2,13 +2,11 @@
 
 @layer base {
   :root {
-    /* Premium Light Mode (Warm & crisp) */
+    /* Premium Light Mode */
     --background: #FFFFFF;
     --foreground: #09090B;
-    /* Almost black for sharp contrast */
 
     --card: #F4F4F5;
-    /* Subtle gray surface */
     --card-foreground: #09090B;
 
     --popover: #FFFFFF;
@@ -22,7 +20,6 @@
 
     --muted: #F4F4F5;
     --muted-foreground: #71717A;
-    /* Darker gray for readability */
 
     --accent: #F4F4F5;
     --accent-foreground: #18181B;
@@ -38,14 +35,11 @@
   }
 
   .dark {
-    /* Premium Dark Mode (Deep & High Contrast) */
+    /* Premium Dark Mode (OLED) */
     --background: #000000;
-    /* OLED Black */
     --foreground: #FFFFFF;
-    /* Pure White */
 
     --card: #121212;
-    /* Distinct Surface */
     --card-foreground: #FFFFFF;
 
     --popover: #121212;
@@ -59,7 +53,6 @@
 
     --muted: #1E1E1E;
     --muted-foreground: #A1A1AA;
-    /* Lighter gray for dark mode readability */
 
     --accent: #1E1E1E;
     --accent-foreground: #FFFFFF;
@@ -96,25 +89,24 @@
   --radius-xl: var(--radius);
 }
 
+/* ── Base ── */
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-family: var(--font-geist), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 
-  /* Mobile Feel */
+  /* Native mobile feel */
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   overscroll-behavior-y: none;
   padding-bottom: env(safe-area-inset-bottom);
-
-  /* Smooth scroll */
   -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
 }
 
-/* Utilities */
+/* ── Safe area utilities ── */
 .pt-safe {
   padding-top: env(safe-area-inset-top);
 }
@@ -123,21 +115,22 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Hide scrollbar */
+/* ── Scrollbar ── */
 ::-webkit-scrollbar {
-  width: 0px;
+  width: 0;
   background: transparent;
 }
 
-/* Premium Card */
+/* ── Premium Card ── */
 .premium-card {
   background-color: var(--card);
   border-radius: 1.75rem;
-  /* 28px */
-  transition: all 120ms ease-out;
+  transition: transform 80ms ease-out, box-shadow 120ms ease-out;
+  will-change: transform;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
-/* Light mode specific shadow — layered depth */
 :root:not(.dark) .premium-card {
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.04),
@@ -145,25 +138,24 @@ body {
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-/* Dark mode specific border */
 .dark .premium-card {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Glass Header */
+/* ── Glass Header ── */
 .glass-header {
   background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .dark .glass-header {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Typography */
+/* ── Typography ── */
 .text-hero {
   font-size: 3rem;
   font-weight: 800;
@@ -172,24 +164,25 @@ body {
 }
 
 .text-label {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
+  letter-spacing: 0.1em;
+  font-weight: 700;
   color: var(--muted-foreground);
 }
 
-/* Animations */
+/* ── Animations (GPU-composited) ── */
 .active-press {
   will-change: transform;
-  transition: transform 100ms cubic-bezier(0.22, 1, 0.36, 1);
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  transition: transform 80ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .active-press:active {
   transform: scale(0.97);
 }
 
-/* Smooth spring for modals and overlays */
 @keyframes slideUp {
   from {
     transform: translateY(100%);
@@ -212,7 +205,7 @@ body {
   }
 }
 
-/* QR Code Container */
+/* ── QR Container ── */
 .qr-container {
   background: white;
   border-radius: 1.5rem;
@@ -224,7 +217,7 @@ body {
   height: 100%;
 }
 
-/* Hide number input spinners for a clean mobile-native look */
+/* ── Input cleanup ── */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -234,4 +227,11 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
+}
+
+/* ── GPU-accelerated scroll containers ── */
+main {
+  contain: layout style;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }

@@ -441,18 +441,18 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
 
                 {/* Floating Actions */}
                 <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-center pointer-events-none px-5">
-                    <div className="flex gap-3 w-full max-w-md pointer-events-auto p-2 rounded-[1.25rem] bg-background/80 backdrop-blur-xl border border-border/50 shadow-2xl shadow-black/10">
+                    <div className="flex gap-2.5 w-full max-w-md pointer-events-auto p-2 rounded-[1.25rem] bg-background/80 backdrop-blur-xl border border-border/50 shadow-2xl shadow-black/10">
                         <Button
                             onClick={() => router.push(`/group/${id}/statement`)}
-                            className="h-12 flex-1 rounded-xl bg-secondary text-foreground font-semibold border-0 shadow-none active:scale-95 transition-transform"
+                            className="h-[52px] flex-1 rounded-2xl bg-secondary text-foreground font-semibold border-0 shadow-none active:scale-[0.96] transition-transform text-[15px]"
                         >
                             <FileText size={18} className="mr-2 opacity-50" /> Statement
                         </Button>
                         <Button
                             onClick={() => router.push(`/group/${id}/expense/new`)}
-                            className="h-12 flex-[1.5] rounded-xl bg-primary text-primary-foreground font-bold border-0 shadow-none active:scale-95 transition-transform"
+                            className="h-[52px] flex-1 rounded-2xl bg-primary text-primary-foreground font-bold border-0 shadow-none active:scale-[0.96] transition-transform text-[15px]"
                         >
-                            <Plus size={20} className="mr-2" /> Add Expense
+                            <Plus size={18} className="mr-1.5" /> Add Expense
                         </Button>
                     </div>
                 </div>
