@@ -441,16 +441,16 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
 
                 {/* Bottom Action Bar */}
                 <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none">
-                    <div className="flex pointer-events-auto w-full border-t border-border/20 shadow-[-0_10px_40px_rgba(0,0,0,0.1)]">
+                    <div className="flex pointer-events-auto w-full shadow-[0_-8px_40px_rgba(5,150,105,0.15)] dark:shadow-[0_-8px_40px_rgba(16,185,129,0.1)]">
                         <Button
                             onClick={() => router.push(`/group/${id}/statement`)}
-                            className="flex-1 rounded-none h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-secondary text-foreground font-semibold border-0 shadow-none hover:bg-secondary/90 active:bg-secondary/70 transition-colors text-[15px]"
+                            className="flex-1 rounded-none h-[calc(4.5rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-secondary/95 backdrop-blur-md text-foreground font-bold border-0 shadow-none active:bg-secondary/70 transition-all text-[15px] border-t border-border/50"
                         >
                             <FileText size={18} className="mr-2 opacity-50" /> Statement
                         </Button>
                         <Button
                             onClick={() => router.push(`/group/${id}/expense/new`)}
-                            className="flex-1 rounded-none h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-primary text-primary-foreground font-bold border-0 shadow-none hover:bg-primary/90 active:bg-primary/80 transition-colors text-[15px]"
+                            className="flex-1 rounded-none h-[calc(4.5rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] glass-bevel text-primary-foreground font-extrabold border-0 shadow-none active:brightness-90 transition-all text-[15px]"
                         >
                             <Plus size={18} className="mr-1.5" /> Add Expense
                         </Button>
