@@ -36,6 +36,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                     sizes[size],
                     className
                 )}
+                onClick={(e) => {
+                    if (props.onClick) {
+                        // Concurrent transition prevents heavy state updates from freezing the 3D press animation
+                        React.startTransition(() => {
+                            props.onClick?.(e);
+                        });
+                    }
+                }}
                 {...props}
             >
                 {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}

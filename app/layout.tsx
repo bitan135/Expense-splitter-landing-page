@@ -54,6 +54,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geist.variable} antialiased`}>
+        {/* iOS FastClick Activator Hack: Forces instant :active evaluation */}
+        <script dangerouslySetInnerHTML={{ __html: 'document.addEventListener("touchstart", function() {}, {passive: true});' }} />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
