@@ -292,6 +292,13 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
         group ? group.expenses.filter(e => e.type !== 'settlement').reduce((sum, e) => sum + e.amount, 0) : 0
         , [group])
 
+    const sortedExpenses = useMemo(() =>
+        group ? group.expenses.slice().sort((a, b) => b.createdAt - a.createdAt) : []
+        , [group])
+
+    const expensesOnly = useMemo(() => sortedExpenses.filter(e => e.type !== 'settlement'), [sortedExpenses])
+    const settlementsOnly = useMemo(() => sortedExpenses.filter(e => e.type === 'settlement'), [sortedExpenses])
+
     if (!state.loaded) return <div className="p-10 text-center text-muted-foreground">Loading...</div>
     if (!group) return <div className="p-10 text-center text-muted-foreground">Group not found</div>
 
@@ -347,24 +354,21 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                     </div>
                 </section>
 
-                {/* Expense List */}
+                {/* Expenses List */}
                 <section className="space-y-4">
                     <div className="flex items-center justify-between px-1">
-                        <h3 className="text-label">Saved Activity</h3>
+                        <h3 className="text-label">Expenses</h3>
                     </div>
                     <div className="grid gap-3">
-                        {group.expenses.length > 0 ? (
-                            group.expenses
-                                .slice()
-                                .sort((a, b) => b.createdAt - a.createdAt)
-                                .map(expense => (
-                                    <ExpenseItem
-                                        key={expense.id}
-                                        expense={expense}
-                                        group={group}
-                                        onClick={(eId) => router.push(`/group/${id}/expense/${eId}`)}
-                                    />
-                                ))
+                        {expensesOnly.length > 0 ? (
+                            expensesOnly.map(expense => (
+                                <ExpenseItem
+                                    key={expense.id}
+                                    expense={expense}
+                                    group={group}
+                                    onClick={(eId) => router.push(`/group/${id}/expense/${eId}`)}
+                                />
+                            ))
                         ) : (
                             <div className="text-center py-12 text-muted-foreground bg-secondary/50 rounded-3xl border border-dashed border-border/50">
                                 <p>No expenses yet.</p>
@@ -373,6 +377,25 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                         )}
                     </div>
                 </section>
+
+                {/* Settled Activity List */}
+                {settlementsOnly.length > 0 && (
+                    <section className="space-y-4 pt-4">
+                        <div className="flex items-center justify-between px-1">
+                            <h3 className="text-label">Settled Activity</h3>
+                        </div>
+                        <div className="grid gap-3">
+                            {settlementsOnly.map(expense => (
+                                <ExpenseItem
+                                    key={expense.id}
+                                    expense={expense}
+                                    group={group}
+                                    onClick={(eId) => router.push(`/group/${id}/expense/${eId}`)}
+                                />
+                            ))}
+                        </div>
+                    </section>
+                )}
 
                 {/* Floating Actions */}
                 <div className="fixed bottom-8 left-0 right-0 z-30 flex justify-center gap-4 pointer-events-none px-6">
