@@ -89,6 +89,7 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
                 style={modalStyle}
                 className={cn(
                     "relative w-full max-w-lg transform rounded-t-3xl bg-background px-6 pb-8 pt-3 shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] max-h-[90vh] overflow-y-auto",
+                    "will-change-transform transform-gpu", // Hardware Acceleration
                     animationClass,
                     className
                 )}

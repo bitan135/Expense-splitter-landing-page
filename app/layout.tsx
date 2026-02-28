@@ -68,7 +68,7 @@ export default function RootLayout({
             <StoreProvider>
               <ErrorBoundary>
                 <ToastProvider />
-                <div className="mx-auto min-h-screen bg-background text-foreground safe-area-padding max-w-md shadow-2xl safe-area-shadow overflow-hidden relative pb-16">
+                <div className="mx-auto h-[100dvh] overflow-y-auto overscroll-y-contain bg-background text-foreground max-w-md shadow-2xl safe-area-shadow relative pb-[calc(env(safe-area-inset-bottom)+5rem)]">
                   {children}
                 </div>
               </ErrorBoundary>

@@ -33,7 +33,7 @@ export default function HomePage() {
 
 
   return (
-    <div className="min-h-screen bg-background pb-[calc(env(safe-area-inset-bottom)+2rem)]">
+    <div className="mx-auto w-full h-full pb-[calc(env(safe-area-inset-bottom)+2rem)]">
       <Header
         title=""
         rightAction={
@@ -47,7 +47,7 @@ export default function HomePage() {
         }
       />
 
-      <main className="p-4 max-w-md mx-auto space-y-5">
+      <main className="p-4 w-full space-y-5">
         {/* Hero */}
         <section className="pt-4 pb-2">
           <h2 className="text-4xl font-extrabold tracking-tighter">Your Groups</h2>

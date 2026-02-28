@@ -144,7 +144,7 @@ const ExpenseItem = memo(({ expense, group, onClick }: { expense: Expense, group
 
     return (
         <Card
-            className="active-press relative group overflow-hidden cursor-pointer shadow-organic border-border/50 hover:shadow-glow"
+            className="active-press relative group overflow-hidden cursor-pointer shadow-organic border-border/50 hover:shadow-glow will-change-transform transform-gpu"
             onClick={() => onClick(expense.id)}
         >
             {/* Left accent bar */}

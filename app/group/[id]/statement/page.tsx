@@ -44,7 +44,7 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
     if (!group) return <div>Group not found</div>
 
     return (
-        <div className="min-h-screen bg-background pb-20">
+        <div className="mx-auto w-full h-full pb-20">
             <Header
                 title="Statement"
                 rightAction={
@@ -54,7 +54,7 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
                 }
             />
 
-            <main className="p-4 max-w-md mx-auto space-y-6">
+            <main className="p-4 w-full space-y-6">
 
                 {/* Net Balances */}
                 <section>
