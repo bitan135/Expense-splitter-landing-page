@@ -114,7 +114,7 @@ export default function HomePage() {
           )
         })}
 
-        <div className="fixed bottom-8 right-5 z-30 pb-[env(safe-area-inset-bottom)]">
+        <div className="fixed bottom-4 right-4 z-30 pb-[env(safe-area-inset-bottom)]">
           <Button
             size="icon"
             className="h-14 w-14 rounded-full shadow-xl shadow-primary/25 active:scale-90 transition-transform"

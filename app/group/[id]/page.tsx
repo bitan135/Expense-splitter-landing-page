@@ -439,18 +439,18 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                     </section>
                 )}
 
-                {/* Floating Actions */}
-                <div className="fixed bottom-8 left-0 right-0 z-30 flex justify-center pointer-events-none px-5 pb-[env(safe-area-inset-bottom)]">
-                    <div className="flex gap-2.5 w-full max-w-md pointer-events-auto p-2 rounded-[1.25rem] bg-background/85 backdrop-blur-xl border border-border/50 shadow-xl shadow-primary/8">
+                {/* Bottom Action Bar */}
+                <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none">
+                    <div className="flex pointer-events-auto w-full border-t border-border/20 shadow-[-0_10px_40px_rgba(0,0,0,0.1)]">
                         <Button
                             onClick={() => router.push(`/group/${id}/statement`)}
-                            className="h-[52px] flex-1 rounded-2xl bg-secondary text-foreground font-semibold border-0 shadow-none active:scale-[0.96] transition-transform text-[15px]"
+                            className="flex-1 rounded-none h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-secondary text-foreground font-semibold border-0 shadow-none hover:bg-secondary/90 active:bg-secondary/70 transition-colors text-[15px]"
                         >
                             <FileText size={18} className="mr-2 opacity-50" /> Statement
                         </Button>
                         <Button
                             onClick={() => router.push(`/group/${id}/expense/new`)}
-                            className="h-[52px] flex-1 rounded-2xl bg-primary text-primary-foreground font-bold border-0 shadow-none active:scale-[0.96] transition-transform text-[15px]"
+                            className="flex-1 rounded-none h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-primary text-primary-foreground font-bold border-0 shadow-none hover:bg-primary/90 active:bg-primary/80 transition-colors text-[15px]"
                         >
                             <Plus size={18} className="mr-1.5" /> Add Expense
                         </Button>
