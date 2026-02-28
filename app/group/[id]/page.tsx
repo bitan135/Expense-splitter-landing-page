@@ -215,7 +215,7 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
     }>({ maxAmount: 0, mode: 'settle' })
 
     const group = state.groups.find(g => g.id === id)
-    const balances = useMemo(() => group ? calculateBalances(group) : {}, [group])
+    const balances = useMemo(() => group ? calculateBalances(group) : {}, [group?.members, group?.expenses])
     const transactions = useMemo(() => optimizeSettlement(balances), [balances])
 
     const selfId = group?.selfId

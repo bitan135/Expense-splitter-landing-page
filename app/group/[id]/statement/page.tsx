@@ -8,7 +8,7 @@ import { ArrowLeft, Download } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { calculateBalances } from "@/lib/logic/calculateBalances"
 import { optimizeSettlement } from "@/lib/logic/optimizeSettlement"
-import { exportStatementPNG } from "@/lib/logic/exportStatementPNG"
+// exportStatementPNG dynamically imported for performance
 import { cn, formatAmount } from "@/lib/utils"
 
 export default function StatementPage({ params }: { params: Promise<{ id: string }> }) {
@@ -26,9 +26,10 @@ export default function StatementPage({ params }: { params: Promise<{ id: string
         return Object.keys(balances).length > 0 ? optimizeSettlement(balances) : []
     }, [balances])
 
-    const handleExport = useCallback(() => {
+    const handleExport = useCallback(async () => {
         if (!group) return
         const isDark = document.documentElement.classList.contains('dark')
+        const { exportStatementPNG } = await import('@/lib/logic/exportStatementPNG')
         exportStatementPNG(group, isDark)
     }, [group])
 
