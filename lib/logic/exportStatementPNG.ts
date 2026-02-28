@@ -22,10 +22,13 @@ export const exportStatementPNG = (group: Group) => {
     // --- Data Prep ---
     const balances = calculateBalances(group);
     const settlements = optimizeSettlement(balances);
-    // All expenses (for saved activity section)
-    const allExpenses = group.expenses
+    // Separate expenses and settlements
+    const sortedActivity = group.expenses
         .slice()
         .sort((a, b) => b.createdAt - a.createdAt);
+
+    const expensesOnly = sortedActivity.filter(e => e.type !== 'settlement');
+    const settlementsOnly = sortedActivity.filter(e => e.type === 'settlement');
 
     // --- Layout Calculation ---
     const headerHeight = 180;
@@ -41,11 +44,14 @@ export const exportStatementPNG = (group: Group) => {
     const settlementsHeight = settlements.length > 0 ? 80 + (settlements.length * 70) + 40 : 0;
 
     // Expenses Section
-    const expensesHeight = allExpenses.length > 0 ? 80 + (allExpenses.length * 60) + 40 : 0;
+    const expensesHeight = expensesOnly.length > 0 ? 80 + (expensesOnly.length * 60) + 40 : 0;
+
+    // Settled Activity Section
+    const settledActivityHeight = settlementsOnly.length > 0 ? 80 + (settlementsOnly.length * 60) + 40 : 0;
 
     const footerHeight = 100;
 
-    const totalHeight = headerHeight + balancesHeight + settlementsHeight + expensesHeight + footerHeight;
+    const totalHeight = headerHeight + balancesHeight + settlementsHeight + expensesHeight + settledActivityHeight + footerHeight;
 
     // --- Setup Canvas ---
     canvas.width = width * scale;
@@ -204,25 +210,18 @@ export const exportStatementPNG = (group: Group) => {
         y += 20;
     }
 
-    // --- 4. Recent Activity ---
-    if (allExpenses.length > 0) {
+    // --- 4. Expenses ---
+    if (expensesOnly.length > 0) {
         y += 20;
         ctx.fillStyle = mutedColor;
         ctx.font = "600 14px -apple-system, sans-serif";
         ctx.textAlign = "left";
-        ctx.fillText(`SAVED ACTIVITY (${allExpenses.length})`, padding, y);
+        ctx.fillText(`EXPENSES (${expensesOnly.length})`, padding, y);
         y += 30;
 
-        allExpenses.forEach(e => {
+        expensesOnly.forEach(e => {
             const payer = group.members.find(m => m.id === e.paidBy)?.name || "Unknown";
-            const isSettlement = e.type === 'settlement';
-            let subText = `${payer} paid`;
-
-            if (isSettlement) {
-                const receiverId = Object.keys(e.splits)[0];
-                const receiver = group.members.find(m => m.id === receiverId)?.name || "Unknown";
-                subText = `${payer} settled to ${receiver}`;
-            }
+            const subText = `${payer} paid`;
 
             ctx.fillStyle = textColor;
             ctx.font = "500 18px -apple-system, sans-serif";
@@ -241,6 +240,40 @@ export const exportStatementPNG = (group: Group) => {
             y += 60;
         });
     }
+
+    // --- 5. Settled Activity ---
+    if (settlementsOnly.length > 0) {
+        y += 20;
+        ctx.fillStyle = mutedColor;
+        ctx.font = "600 14px -apple-system, sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(`SETTLED ACTIVITY (${settlementsOnly.length})`, padding, y);
+        y += 30;
+
+        settlementsOnly.forEach(e => {
+            const payer = group.members.find(m => m.id === e.paidBy)?.name || "Unknown";
+            const receiverId = Object.keys(e.splits)[0];
+            const receiver = group.members.find(m => m.id === receiverId)?.name || "Unknown";
+            const subText = `${payer} settled to ${receiver}`;
+
+            ctx.fillStyle = textColor;
+            ctx.font = "500 18px -apple-system, sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText(e.title, padding, y + 20);
+
+            ctx.fillStyle = mutedColor;
+            ctx.font = "14px -apple-system, sans-serif";
+            ctx.fillText(subText, padding, y + 42);
+
+            ctx.fillStyle = textColor;
+            ctx.font = "bold 18px -apple-system, sans-serif";
+            ctx.textAlign = "right";
+            ctx.fillText(`₹${e.amount.toFixed(2)}`, width - padding, y + 30);
+
+            y += 60;
+        });
+    }
+
 
     // --- Footer ---
     y += 60;
