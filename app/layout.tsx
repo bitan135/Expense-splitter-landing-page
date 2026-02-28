@@ -12,8 +12,8 @@ const geist = Geist({
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FAFAF5" },
-    { media: "(prefers-color-scheme: dark)", color: "#0A0E0A" },
+    { media: "(prefers-color-scheme: light)", color: "#F9F6F0" }, // Sunlit Terrarium
+    { media: "(prefers-color-scheme: dark)", color: "#020617" }, // Bioluminescent Forest
   ],
   width: "device-width",
   initialScale: 1,
