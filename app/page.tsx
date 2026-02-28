@@ -114,13 +114,13 @@ export default function HomePage() {
           )
         })}
 
-        <div className="fixed bottom-4 right-4 z-30 pb-[env(safe-area-inset-bottom)]">
+        <div className="fixed right-6 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-30">
           <Button
             size="icon"
-            className="h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-organic active-press"
+            className="relative h-14 w-14 rounded-full glass-bevel text-primary-foreground active-press flex items-center justify-center p-0"
             onClick={() => setIsModalOpen(true)}
           >
-            <Plus size={24} />
+            <Plus size={24} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
           </Button>
         </div>
       </main>
