@@ -11,6 +11,7 @@ import { calculateBalances } from "@/lib/logic/calculateBalances"
 import { calculatePairwiseBalances } from "@/lib/logic/calculatePairwiseBalances"
 import { cn, formatAmount } from "@/lib/utils"
 import { Group, Expense, Member } from "@/types"
+import { Haptics } from "@/lib/logic/haptics"
 
 import { optimizeSettlement, Transaction } from "@/lib/logic/optimizeSettlement"
 import { SettlementModal } from "@/components/group/settlement-modal"
@@ -134,7 +135,7 @@ const MemberItem = memo(({ member, pairwiseBalance, transactions, groupMembers, 
 })
 MemberItem.displayName = "MemberItem"
 
-const ExpenseItem = memo(({ expense, group, onClick }: { expense: Expense, group: Group, onClick: (eId: string) => void }) => {
+const ExpenseItem = memo(({ expense, group, onClick, index = 0 }: { expense: Expense, group: Group, onClick: (eId: string) => void, index?: number }) => {
     const payer = group.members.find(m => m.id === expense.paidBy)?.name || "Unknown"
     const isSettlement = expense.type === 'settlement'
 
@@ -144,8 +145,12 @@ const ExpenseItem = memo(({ expense, group, onClick }: { expense: Expense, group
 
     return (
         <Card
-            className="active-press relative group overflow-hidden cursor-pointer shadow-organic border-border/50 hover:shadow-glow will-change-transform transform-gpu"
-            onClick={() => onClick(expense.id)}
+            className="active-press relative group overflow-hidden cursor-pointer shadow-organic border-border/50 hover:shadow-glow animate-in slide-in-from-bottom-2 fade-in fill-mode-both"
+            style={{ animationDelay: `${index * 40}ms` }}
+            onClick={() => {
+                Haptics.light()
+                onClick(expense.id)
+            }}
         >
             {/* Left accent bar */}
             <div className={cn(
@@ -321,7 +326,10 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
             <Header
                 title={group.name}
                 rightAction={
-                    <Button variant="ghost" size="icon" onClick={() => router.push("/")}>
+                    <Button variant="ghost" size="icon" onClick={() => {
+                        Haptics.light()
+                        router.push("/")
+                    }}>
                         <ArrowLeft className="text-foreground" size={20} />
                     </Button>
                 }
@@ -360,18 +368,22 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                         </Button>
                     </div>
                     <div className="grid gap-2.5">
-                        {group.members.map(member => (
-                            <MemberItem
-                                key={member.id}
-                                member={member}
-                                pairwiseBalance={pairwise[member.id] || 0}
-                                transactions={transactions}
-                                groupMembers={group.members}
-                                isSelf={member.id === selfId}
-                                selfId={selfId}
-                                selfBalance={balances[member.id] || 0}
-                                onSettle={openSettlement}
-                            />
+                        {group.members.map((member, i) => (
+                            <div key={member.id} className="animate-in slide-in-from-bottom-2 fade-in fill-mode-both" style={{ animationDelay: `${i * 40}ms` }}>
+                                <MemberItem
+                                    member={member}
+                                    pairwiseBalance={pairwise[member.id] || 0}
+                                    transactions={transactions}
+                                    groupMembers={group.members}
+                                    isSelf={member.id === selfId}
+                                    selfId={selfId}
+                                    selfBalance={balances[member.id] || 0}
+                                    onSettle={(...args) => {
+                                        Haptics.medium()
+                                        openSettlement(...args)
+                                    }}
+                                />
+                            </div>
                         ))}
                         {group.members.length === 0 && (
                             <div className="text-center py-12 text-muted-foreground bg-secondary/50 rounded-3xl border border-dashed border-border/50">
@@ -416,11 +428,12 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                     </div>
                     <div className="grid gap-3">
                         {expensesOnly.length > 0 ? (
-                            expensesOnly.map(expense => (
+                            expensesOnly.map((expense, i) => (
                                 <ExpenseItem
                                     key={expense.id}
                                     expense={expense}
                                     group={group}
+                                    index={i}
                                     onClick={(eId) => router.push(`/group/${id}/expense/${eId}`)}
                                 />
                             ))
@@ -451,11 +464,12 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                             <h3 className="text-label">Settled Activity</h3>
                         </div>
                         <div className="grid gap-3">
-                            {settlementsOnly.map(expense => (
+                            {settlementsOnly.map((expense, i) => (
                                 <ExpenseItem
                                     key={expense.id}
                                     expense={expense}
                                     group={group}
+                                    index={i}
                                     onClick={(eId) => router.push(`/group/${id}/expense/${eId}`)}
                                 />
                             ))}
@@ -464,16 +478,22 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                 )}
 
                 {/* Floating Premium Action Bar */}
-                <div className="fixed bottom-[calc(0.5rem+env(safe-area-inset-bottom))] left-0 right-0 z-30 pointer-events-none px-4">
+                <div className="fixed bottom-[calc(0.5rem+env(safe-area-inset-bottom))] left-0 right-0 z-30 pointer-events-none px-4 animate-in slide-in-from-bottom-8 duration-500 delay-200 fill-mode-both">
                     <div className="max-w-md mx-auto w-full pointer-events-auto flex items-center gap-2 p-2 rounded-full backdrop-blur-2xl bg-background/80 border border-border/50 shadow-[0_12px_40px_-10px_rgba(5,150,105,0.25)] dark:shadow-[0_12px_40px_-10px_rgba(16,185,129,0.15)] ring-1 ring-black/5 dark:ring-white/5">
                         <Button
-                            onClick={() => router.push(`/group/${id}/statement`)}
+                            onClick={() => {
+                                Haptics.light()
+                                router.push(`/group/${id}/statement`)
+                            }}
                             className="flex-1 rounded-[2rem] h-14 bg-secondary shadow-none hover:bg-secondary/90 text-foreground font-bold transition-transform active:scale-95 text-[15px] border border-transparent dark:border-white/5"
                         >
                             <FileText size={18} className="mr-2 opacity-50" /> Statement
                         </Button>
                         <Button
-                            onClick={() => router.push(`/group/${id}/expense/new`)}
+                            onClick={() => {
+                                Haptics.medium()
+                                router.push(`/group/${id}/expense/new`)
+                            }}
                             className="flex-1 rounded-[2rem] h-14 glass-bevel text-primary-foreground font-extrabold shadow-sm active:scale-95 transition-transform text-[15px]"
                         >
                             <Plus size={18} className="mr-1.5" /> Add Expense
