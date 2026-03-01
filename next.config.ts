@@ -10,7 +10,18 @@ const withPWA = withPWAInit({
   reloadOnOnline: true,
   workboxOptions: {
     disableDevLogs: true,
-    skipWaiting: true, // Move skipWaiting here if supported by workboxOptions, or remove if causing issues. It's usually a workbox option.
+    skipWaiting: true,
+    runtimeCaching: [
+      {
+        urlPattern: ({ request }) => request.mode === 'navigate',
+        handler: 'StaleWhileRevalidate',
+        options: {
+          cacheName: 'pages',
+          expiration: { maxEntries: 50 },
+          cacheableResponse: { statuses: [0, 200] }
+        }
+      }
+    ]
   },
 });
 

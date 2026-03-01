@@ -9,11 +9,13 @@ interface AppState {
     groups: Group[];
     activeGroupId: string | null;
     loaded: boolean;
+    requiresReset?: boolean;
 }
 
 // Actions
 type Action =
     | { type: "LOAD_STATE"; payload: AppState }
+    | { type: "SOFT_RESET" }
     | { type: "CREATE_GROUP"; payload: { name: string } }
     | { type: "DELETE_GROUP"; payload: { id: string } }
     | { type: "SET_ACTIVE_GROUP"; payload: { id: string | null } }
@@ -35,6 +37,9 @@ const reducer = (state: AppState, action: Action): AppState => {
     switch (action.type) {
         case "LOAD_STATE":
             return { ...action.payload, loaded: true };
+
+        case "SOFT_RESET":
+            return { ...initialState, loaded: true };
 
         case "CREATE_GROUP": {
             const newGroup: Group = {
@@ -163,9 +168,8 @@ export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
                     ) {
                         dispatch({ type: "LOAD_STATE", payload: saved as AppState });
                     } else {
-                        console.warn("Corrupt IndexedDB state, resetting.");
-                        await del("expense-splitter-state");
-                        dispatch({ type: "LOAD_STATE", payload: initialState });
+                        console.warn("Corrupt IndexedDB state. Soft-locking to prevent data loss.");
+                        dispatch({ type: "LOAD_STATE", payload: { ...initialState, requiresReset: true } });
                     }
                 } else {
                     // Just trigger loaded if empty
@@ -173,7 +177,7 @@ export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
                 }
             } catch (e) {
                 console.error("Failed to load state from IndexedDB", e);
-                dispatch({ type: "LOAD_STATE", payload: initialState });
+                dispatch({ type: "LOAD_STATE", payload: { ...initialState, requiresReset: true } });
             }
         };
         loadState();

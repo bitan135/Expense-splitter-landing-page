@@ -59,9 +59,11 @@ export const calculateBalances = (group: Group): Record<string, number> => {
         }
     });
 
-    // Sanitize negative-zero values
+    // Sanitize floating-point dust and negative-zeros
     Object.keys(balances).forEach(id => {
-        if (Object.is(balances[id], -0) || Math.abs(balances[id]) < 0.005) {
+        // Enforce strict 2-decimal truncation to match UI $0.00 rules natively
+        balances[id] = safeFloat(balances[id]);
+        if (Object.is(balances[id], -0) || Math.abs(balances[id]) <= 0.005) {
             balances[id] = 0;
         }
     });

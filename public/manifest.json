@@ -4,8 +4,8 @@
     "description": "Split expenses with friends — offline, fast, simple",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#2D6A4F",
-    "theme_color": "#2D6A4F",
+    "background_color": "#F9F6F0",
+    "theme_color": "#059669",
     "orientation": "portrait",
     "id": "/",
     "icons": [

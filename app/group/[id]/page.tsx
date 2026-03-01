@@ -232,6 +232,15 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
         }
     }, [group])
 
+    // Dynamic Title Tag for SEO and shared links
+    useEffect(() => {
+        if (group) {
+            document.title = `${group.name} | Expense Splitter`
+        } else {
+            document.title = "Expense Splitter"
+        }
+    }, [group?.name])
+
     const handleSetSelf = useCallback((memberId: string) => {
         dispatch({ type: "SET_SELF", payload: { groupId: id, memberId } })
         setSelfPickerOpen(false)
@@ -455,7 +464,7 @@ export default function GroupPage({ params }: { params: Promise<{ id: string }> 
                 )}
 
                 {/* Floating Premium Action Bar */}
-                <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none pb-[calc(1rem+env(safe-area-inset-bottom))] px-4">
+                <div className="fixed bottom-[calc(0.5rem+env(safe-area-inset-bottom))] left-0 right-0 z-30 pointer-events-none px-4">
                     <div className="max-w-md mx-auto w-full pointer-events-auto flex items-center gap-2 p-2 rounded-full backdrop-blur-2xl bg-background/80 border border-border/50 shadow-[0_12px_40px_-10px_rgba(5,150,105,0.25)] dark:shadow-[0_12px_40px_-10px_rgba(16,185,129,0.15)] ring-1 ring-black/5 dark:ring-white/5">
                         <Button
                             onClick={() => router.push(`/group/${id}/statement`)}

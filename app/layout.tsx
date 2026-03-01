@@ -47,6 +47,7 @@ export const metadata: Metadata = {
 };
 
 import { ErrorBoundary } from "@/components/error-boundary"
+import { HydrationBoundary } from "@/components/hydration-boundary"
 
 export default function RootLayout({
   children,
@@ -69,7 +70,9 @@ export default function RootLayout({
               <ErrorBoundary>
                 <ToastProvider />
                 <div className="mx-auto min-h-screen bg-background text-foreground max-w-md sm:shadow-2xl safe-area-shadow relative pb-[calc(env(safe-area-inset-bottom)+5rem)]">
-                  {children}
+                  <HydrationBoundary>
+                    {children}
+                  </HydrationBoundary>
                 </div>
               </ErrorBoundary>
             </StoreProvider>
