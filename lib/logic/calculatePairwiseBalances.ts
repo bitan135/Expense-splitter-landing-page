@@ -22,7 +22,9 @@ export const calculatePairwiseBalances = (
     group.expenses.forEach(expense => {
         let shares: Record<string, number>;
         try {
-            shares = calculateShares(expense.amount, expense.type, expense.splits, group.members);
+            // Freeze ledger map to historic participants instead of modern group.members
+            const historicMembers = Object.keys(expense.splits).map(id => ({ id, name: "Hist" } as Member));
+            shares = calculateShares(expense.amount, expense.type, expense.splits, historicMembers);
         } catch {
             return; // Skip invalid expenses
         }

@@ -74,15 +74,17 @@ export default function ExpenseDetailPage({ params }: { params: Promise<{ id: st
                     <div className="space-y-3">
                         <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.12em] mb-3">Split Breakdown</div>
                         {Object.entries(expense.splits).map(([memberId, splitAmount]) => {
-                            if (splitAmount <= 0) return null
                             const memberName = group.members.find(m => m.id === memberId)?.name || "Unknown"
+                            const isExcluded = splitAmount <= 0;
                             return (
-                                <div key={memberId} className="flex justify-between items-center text-sm">
+                                <div key={memberId} className={cn("flex justify-between items-center text-sm", isExcluded && "opacity-50")}>
                                     <div className="flex items-center gap-3">
-                                        <div className="h-2 w-2 rounded-full bg-primary/20" />
+                                        <div className={cn("h-2 w-2 rounded-full", isExcluded ? "bg-muted-foreground/20" : "bg-primary/20")} />
                                         <span className="font-medium">{memberName}</span>
                                     </div>
-                                    <span className="font-bold tabular-nums">₹{splitAmount.toFixed(2)}</span>
+                                    <span className={cn("font-bold tabular-nums", isExcluded && "font-normal text-muted-foreground")}>
+                                        {isExcluded ? "Excluded" : `₹${splitAmount.toFixed(2)}`}
+                                    </span>
                                 </div>
                             )
                         })}

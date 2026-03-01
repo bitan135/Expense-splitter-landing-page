@@ -35,34 +35,17 @@ export const calculateBalances = (group: Group): Record<string, number> => {
         // Re-computing ensures data integrity if logic changes.
 
         try {
-            // We need to construct simplified splits for calculation
-            // But calculateShares takes (amount, type, splits, members).
-            // Does 'splits' in expense match 'splits' arg in calculateShares?
-            // Yes, intended design.
-
-            // However, calculateShares requires 'members'.
-            // If members are removed from group but present in historic expense, logic might break if we pass current group members.
-            // We should probably only calculate for members present in the expense if possible, OR
-            // allow "ghost" members logic. 
-            // For simplicity: We use group.members. If a member is deleted, their ID is gone.
-            // If expense references deleted ID, ignored -> total might not sum up!
-            // Edge case: Removing members after expenses exist.
-            // If member is removed, we should probably remove them from expenses or block removal.
-            // Prompt says: "Removing members after expenses exist" -> "Removing expenses recalculates instantly".
-            // It says "Must handle: Removing members after expenses exist".
-            // If we remove a member, their share needs to be redistributed or expense becomes invalid?
-            // Standard app behavior: Block removal if balance != 0.
-            // But if allowed, expense splits for that member are dropped?
-            // If 'equal' split, share is redistributed to remaining.
-            // If 'custom', we have a problem (missing amount).
-
-            // For this function, we assume generic behavior: pass current members.
+            // Strike Iota Fix: Construct historical members exclusively from the frozen expense.splits array.
+            // This prevents Dynamic Ledger Corruption if group members are later deleted or excluded.
+            // We NO LONGER pass active `group.members` because that forces historical expenses to adapt
+            // to modern membership permutations, corrupting historical balances natively.
+            const historicMembers = Object.keys(expense.splits).map(id => ({ id, name: "Historical" } as any));
 
             const shares = calculateShares(
                 expense.amount,
                 expense.type,
                 expense.splits,
-                group.members
+                historicMembers
             );
 
             Object.entries(shares).forEach(([memberId, shareAmount]) => {

@@ -33,9 +33,9 @@ export const distributeTotal = (
     // First pass: distribute based on ratios floor
     ids.forEach((id) => {
         const ratio = weights[id] / totalWeight;
-        // Calculate raw share, then scale to int to drop floating remainders, convert back
+        // Calculate raw share, scale to int using fixed precision to prevent IEEE 754 drift
         const rawShare = total * ratio;
-        const share = Math.floor(rawShare * 100) / 100;
+        const share = Math.floor(Number((rawShare * 100).toFixed(4))) / 100;
 
         result[id] = share;
         // Use exact integer arithmetic for the running sum to prevent drift
@@ -45,10 +45,12 @@ export const distributeTotal = (
     // Second pass: distribute remainder cents
     let remainder = safeFloat(total - distributedSum);
 
-    // Sort by share decimal part descending to be fair? 
-    // Or just give to first ones. For small groups, order doesn't matter much.
-    // To be deterministic and "fair" visually, we can give to those with highest original weights first.
-    const sortedIds = [...ids].sort((a, b) => weights[b] - weights[a]);
+    // To be deterministic and "fair" visually, give remaining cents to highest weights first.
+    // If weights are identical, sort deterministically by IDs to avoid random assignment.
+    const sortedIds = [...ids].sort((a, b) => {
+        if (weights[b] !== weights[a]) return weights[b] - weights[a];
+        return a.localeCompare(b);
+    });
 
     let i = 0;
     // Avoid floating point comparison drift by scaling to integers (0.005 -> 0.5 -> 1)
