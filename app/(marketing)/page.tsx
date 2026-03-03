@@ -134,9 +134,10 @@ export default function LandingPage() {
                 <FaqSection />
             </main>
 
-            <footer className="w-full border-t border-border/50 py-8 mt-20 text-center">
-                <p className="text-muted-foreground font-medium flex items-center justify-center gap-2">
+            <footer className="w-full border-t border-border/50 py-8 mt-20 text-center px-4">
+                <p className="text-muted-foreground font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-sm sm:text-base">
                     <span>&copy; {new Date().getFullYear()} Expense Splitter.</span>
+                    <span className="hidden sm:inline-block opacity-50">&bull;</span>
                     <span className="opacity-50">Local-First. Privacy-First.</span>
                 </p>
             </footer>
