@@ -2,8 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { ViewTransitions } from 'next-view-transitions';
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
-import { StoreProvider } from "@/lib/store";
-import { ToastProvider } from "@/components/ui/toast";
 import "./globals.css";
 
 const geist = Geist({
@@ -25,14 +23,26 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Expense Splitter",
-  description: "Offline Expense Splitter PWA",
+  metadataBase: new URL("https://expense-splitter-rose.vercel.app"),
+  title: {
+    default: "Expense Splitter | Split Bills, Not Friendships",
+    template: "%s | Expense Splitter",
+  },
+  description: "The premium, privacy-focused, offline-first expense splitter that works right in your browser. Fast, free, and UPI-ready.",
+  keywords: ["expense splitter", "split bills", "bill splitter", "split bills app", "expense tracker", "UPI expenses", "offline expense tracking", "group expenses", "travel expenses", "splitwise alternative", "free expense splitter"],
+  authors: [{ name: "Expense Splitter Team" }],
+  creator: "Expense Splitter",
+  publisher: "Expense Splitter",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Splitter",
-    startupImage: [],
   },
   icons: {
     icon: [
@@ -44,10 +54,41 @@ export const metadata: Metadata = {
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
   },
+  openGraph: {
+    title: "Expense Splitter | Split Bills, Not Friendships",
+    description: "The premium, privacy-focused, offline-first expense splitter that works right in your browser. Fast, free, and UPI-ready.",
+    url: "https://expense-splitter-rose.vercel.app/",
+    siteName: "Expense Splitter",
+    images: [
+      {
+        url: "/icon-512.png", // Will use a higher resolution hero image eventually, falling back to icon
+        width: 1200,
+        height: 630,
+        alt: "Expense Splitter Application Preview",
+      }
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Expense Splitter | Privacy-First Group Expenses",
+    description: "The premium, privacy-focused, offline-first expense splitter. Split bills effortlessly with friends without the awkward math.",
+    images: ["/icon-512.png"],
+    creator: "@ExpenseSplitter",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
-
-import { ErrorBoundary } from "@/components/error-boundary"
-import { HydrationBoundary } from "@/components/hydration-boundary"
 
 export default function RootLayout({
   children,
@@ -66,16 +107,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <StoreProvider>
-              <ErrorBoundary>
-                <ToastProvider />
-                <div className="mx-auto min-h-screen bg-background text-foreground max-w-md sm:shadow-2xl safe-area-shadow relative pb-[calc(env(safe-area-inset-bottom)+5rem)]">
-                  <HydrationBoundary>
-                    {children}
-                  </HydrationBoundary>
-                </div>
-              </ErrorBoundary>
-            </StoreProvider>
+            {children}
           </ThemeProvider>
         </body>
       </html>

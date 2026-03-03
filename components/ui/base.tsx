@@ -1,8 +1,6 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
-import { Haptics } from "@/lib/logic/haptics"
-
 // --- Button ---
 export interface ButtonProps
     extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -38,7 +36,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                     className
                 )}
                 onClick={(e) => {
-                    Haptics.light(); // Global tactile feedback
                     if (props.onClick) {
                         // Concurrent transition prevents heavy state updates from freezing the 3D press animation
                         React.startTransition(() => {
