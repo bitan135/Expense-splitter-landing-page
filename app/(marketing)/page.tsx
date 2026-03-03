@@ -8,6 +8,7 @@ import { FaqSection } from "@/components/marketing/faq";
 import { StickyHeader } from "@/components/marketing/sticky-header";
 import { Header } from "@/components/layout/header";
 import { BentoFeatures } from "@/components/marketing/bento-features";
+import { PwaInstallGuide } from "@/components/marketing/pwa-install-guide";
 
 import { Metadata } from "next";
 
@@ -126,6 +127,12 @@ export default function LandingPage() {
                 <div className="w-full max-w-4xl mx-auto h-[1px] bg-border/50 my-12" />
 
                 <HowItWorks />
+
+                {/* Divider */}
+                <div className="w-full max-w-4xl mx-auto h-[1px] bg-border/50 my-12" />
+
+                {/* 🆕 PWA Install Guide */}
+                <PwaInstallGuide />
 
                 {/* Divider */}
                 <div className="w-full max-w-4xl mx-auto h-[1px] bg-border/50 my-12" />
